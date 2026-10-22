@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import { ApplicationSchema } from '@/lib/validation';
 import { recalculate, generateReference } from '@/lib/calculations';
 import { sanitizeText, checkRateLimit, buildDownloadUrl, secureHex, getBaseUrl } from '@/lib/security';
-import { generatePdf, gcTempStorage } from '@/lib/pdf';
+import { generateApplicationPdf, generatePdf, applicationPdfStoragePath, gcTempStorage } from '@/lib/pdf';
 import { sendApplicantConfirmation, sendAdminNotification } from '@/lib/mailer';
 import type { PdfBundle } from '@/lib/pdf';
 import { db, initDb } from '@/db';
@@ -235,6 +235,8 @@ export const POST: APIRoute = async ({ request }) => {
     newProductsServices:    data.new_products_services,
     newMarketEntered:       data.new_market_entered,
     newMarketDetails:       data.new_market_details,
+    diversificationDetails: data.new_market_details || (data.products[0]?.description ?? ''),
+    marketsCustomers:       data.new_market_details,
     products:               data.products,
     grossProfitMarginOption: data.gross_profit_margin_option,
     totalCompanyRevenue:    data.total_company_revenue,
@@ -249,6 +251,8 @@ export const POST: APIRoute = async ({ request }) => {
     declarationDesignation: data.declaration_designation,
     declarationDate:        data.declaration_date,
     signatureDataUri:       data.signature_data,
+    evidenceFiles:          savedEvidenceAttachments.map(a => ({ name: a.originalName, size: a.sizeBytes })),
+    submissionDate:         new Date(),
   };
 
   // Generate high-end corporate 2-page PDF
@@ -256,7 +260,7 @@ export const POST: APIRoute = async ({ request }) => {
   let pdfBuffer: Buffer | null = null;
   let pdfReady = false;
   try {
-    const pdfResult = await generatePdf(pdfBundle);
+    const pdfResult = await generateApplicationPdf(pdfBundle);
     pdfPath   = pdfResult.filePath;
     pdfBuffer = pdfResult.buffer;
     pdfReady  = !!pdfPath && pdfBuffer.length > 0;
@@ -288,6 +292,7 @@ export const POST: APIRoute = async ({ request }) => {
       data_json: {
         ...data,
         metrics,
+        evidence_files: savedEvidenceAttachments.map(a => ({ name: a.originalName, size: a.sizeBytes })),
       },
     });
 

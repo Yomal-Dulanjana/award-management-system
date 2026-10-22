@@ -63,6 +63,18 @@ export async function ensureDir(dirPath: string): Promise<string> {
 }
 
 /**
+ * Returns the designated PDF storage directory.
+ * Serverless: /tmp/pdfs
+ * Local:      [process.cwd()]/storage/pdfs
+ */
+export function getPdfDir(): string {
+  const root = isServerless()
+    ? path.join('/tmp', 'pdfs')
+    : path.resolve(process.cwd(), 'storage', 'pdfs');
+  return root;
+}
+
+/**
  * Validates that a file path resides strictly inside approved storage roots,
  * protecting against directory traversal attacks while allowing both local storage and /tmp.
  */
@@ -76,11 +88,14 @@ export function isAllowedStoragePath(targetPath: string): boolean {
     path.resolve(cwd, 'astro-award', 'storage'),
     path.resolve('/tmp', 'uploads'),
     path.resolve('/tmp', 'temp'),
+    path.resolve('/tmp', 'pdfs'),
     path.resolve('/tmp', 'storage'),
     path.resolve(os.tmpdir(), 'uploads'),
     path.resolve(os.tmpdir(), 'temp'),
+    path.resolve(os.tmpdir(), 'pdfs'),
     path.resolve('/tmp'),
   ];
 
   return allowedRoots.some(root => resolved.startsWith(root));
 }
+

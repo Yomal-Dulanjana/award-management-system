@@ -8,7 +8,7 @@ import { applications, applicationAttachments } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { verifySessionToken } from '@/lib/auth';
 import { isAllowedStoragePath, getUploadsDir } from '@/lib/storage';
-import { pdfStoragePath, generatePdf } from '@/lib/pdf';
+import { applicationPdfStoragePath, generateApplicationPdf, pdfStoragePath, generatePdf } from '@/lib/pdf';
 import JSZip from 'jszip';
 
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -51,14 +51,14 @@ export const GET: APIRoute = async ({ request, cookies }) => {
   if (typeParam === 'pdf') {
     let resolvedPdf = app.pdf_path ? path.resolve(app.pdf_path) : '';
     if (!resolvedPdf || !existsSync(resolvedPdf)) {
-      resolvedPdf = path.resolve(pdfStoragePath(ref));
+      resolvedPdf = path.resolve(applicationPdfStoragePath(ref));
     }
 
     // If PDF not on disk (e.g. serverless instance recycling), attempt on-demand compilation
     if (!existsSync(resolvedPdf) && app.data_json) {
       try {
         const data = app.data_json as any;
-        const pdfResult = await generatePdf({
+        const pdfResult = await generateApplicationPdf({
           reference: ref,
           companyName: data.company_name,
           financialYear: data.financial_year,
@@ -69,7 +69,9 @@ export const GET: APIRoute = async ({ request, cookies }) => {
           newProductsServices: data.new_products_services,
           newMarketEntered: data.new_market_entered,
           newMarketDetails: data.new_market_details,
-          products: data.products,
+          diversificationDetails: data.diversification_details || data.new_market_details || (data.products?.[0]?.description ?? ''),
+          marketsCustomers: data.markets_customers || data.new_market_details,
+          products: data.products || [],
           grossProfitMarginOption: data.gross_profit_margin_option,
           totalCompanyRevenue: data.total_company_revenue,
           revenueRows: data.metrics?.revenueRows || [],
@@ -83,6 +85,8 @@ export const GET: APIRoute = async ({ request, cookies }) => {
           declarationDesignation: data.declaration_designation,
           declarationDate: data.declaration_date,
           signatureDataUri: data.signature_data,
+          evidenceFiles: data.evidence_files || [],
+          submissionDate: app.submitted_at || new Date(),
         });
         resolvedPdf = path.resolve(pdfResult.filePath);
       } catch (genErr) {
@@ -124,11 +128,11 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     try {
       let resolvedPdf = app.pdf_path ? path.resolve(app.pdf_path) : '';
       if (!resolvedPdf || !existsSync(resolvedPdf)) {
-        resolvedPdf = path.resolve(pdfStoragePath(ref));
+        resolvedPdf = path.resolve(applicationPdfStoragePath(ref));
       }
       if (!existsSync(resolvedPdf) && app.data_json) {
         const data = app.data_json as any;
-        const pdfResult = await generatePdf({
+        const pdfResult = await generateApplicationPdf({
           reference: ref,
           companyName: data.company_name,
           financialYear: data.financial_year,
@@ -139,7 +143,9 @@ export const GET: APIRoute = async ({ request, cookies }) => {
           newProductsServices: data.new_products_services,
           newMarketEntered: data.new_market_entered,
           newMarketDetails: data.new_market_details,
-          products: data.products,
+          diversificationDetails: data.diversification_details || data.new_market_details || (data.products?.[0]?.description ?? ''),
+          marketsCustomers: data.markets_customers || data.new_market_details,
+          products: data.products || [],
           grossProfitMarginOption: data.gross_profit_margin_option,
           totalCompanyRevenue: data.total_company_revenue,
           revenueRows: data.metrics?.revenueRows || [],
@@ -153,6 +159,8 @@ export const GET: APIRoute = async ({ request, cookies }) => {
           declarationDesignation: data.declaration_designation,
           declarationDate: data.declaration_date,
           signatureDataUri: data.signature_data,
+          evidenceFiles: data.evidence_files || [],
+          submissionDate: app.submitted_at || new Date(),
         });
         resolvedPdf = path.resolve(pdfResult.filePath);
       }

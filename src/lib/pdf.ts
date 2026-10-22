@@ -1,26 +1,22 @@
-// High-end corporate A4 PDF generator using pdf-lib with strict 2-page deterministic flow.
-import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
-import { writeFile, mkdir, chmod, readdir, stat, rm } from 'node:fs/promises';
+// High-end executive corporate A4 PDF generator using PDFKit matching the officially approved award dossier.
+import PDFDocument from 'pdfkit';
+import { writeFile, readFile, mkdir, readdir, stat, rm, chmod } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { getTempDir, ensureDir, isServerless } from './storage';
+import path from 'node:path';
+import { isServerless, ensureDir } from './storage';
 
-// Executive Corporate Color Palette
-const NAVY       = rgb(0.059, 0.090, 0.165); // #0f172a (Deep Slate/Navy)
-const AMBER      = rgb(0.851, 0.467, 0.024); // #d97706 (Award Gold)
-const SLATE_DARK = rgb(0.118, 0.161, 0.235); // #1e293b
-const SLATE_MID  = rgb(0.392, 0.455, 0.545); // #64748b
-const SLATE_LT   = rgb(0.886, 0.914, 0.941); // #e2e8f0
-const BG_LIGHT   = rgb(0.973, 0.980, 0.992); // #f8fafc
-const WHITE      = rgb(1, 1, 1);
-const EMERALD    = rgb(0.020, 0.588, 0.412); // #059669
-const EMERALD_BG = rgb(0.925, 0.992, 0.961); // #ecfdf5
-const EMERALD_BD = rgb(0.655, 0.953, 0.816); // #a7f3d0
-const BLUE_CALL  = rgb(0.937, 0.965, 1.000); // #eff6ff
-const BLUE_BORD  = rgb(0.749, 0.859, 0.996); // #bfdbfe
-const BLUE_ACC   = rgb(0.114, 0.306, 0.859); // #1d4ed8
-const RED_TEXT   = rgb(0.725, 0.110, 0.110); // #b91c1c
-const RED_BG     = rgb(0.996, 0.949, 0.949); // #fef2f2
+// Corporate Color Palette (matching reference images)
+const COLOR_NAVY_HEADER   = '#0f2347'; // Deep Navy Header background
+const COLOR_NAVY_TABLE_TH = '#1e3a5f'; // Navy Table Header
+const COLOR_TEXT_NAVY     = '#0f2347'; // Dark Navy Headings
+const COLOR_TEXT_BODY     = '#1e293b'; // Slate dark body text
+const COLOR_AMBER         = '#d97706'; // Left accent bar on section headers
+const COLOR_GOLD_REF      = '#f59e0b'; // Gold / amber for Reference code
+const COLOR_SECTION_BG    = '#f1f5f9'; // Light slate bar background
+const COLOR_BORDER        = '#cbd5e1'; // Light border divider lines
+const COLOR_MUTED         = '#94a3b8'; // Footer text color
+const COLOR_DISCLAIMER    = '#475569'; // Muted dark slate disclaimer text
+const COLOR_WHITE         = '#ffffff';
 
 export interface PdfBundle {
   reference: string;
@@ -33,6 +29,8 @@ export interface PdfBundle {
   newProductsServices: boolean;
   newMarketEntered: boolean;
   newMarketDetails?: string | undefined;
+  diversificationDetails?: string | undefined;
+  marketsCustomers?: string | undefined;
   products: Array<{ name: string; description: string }>;
   grossProfitMarginOption: string;
   totalCompanyRevenue: number;
@@ -46,7 +44,10 @@ export interface PdfBundle {
   declarationName: string;
   declarationDesignation: string;
   declarationDate: string;
-  signatureDataUri: string; // Base64 PNG data URI or raw base64
+  signatureDataUri?: string | undefined;
+  signaturePath?: string | undefined;
+  evidenceFiles?: Array<{ name: string; size: number | string }> | undefined;
+  submissionDate?: Date | string | undefined;
 }
 
 export interface GeneratePdfResult {
@@ -55,604 +56,638 @@ export interface GeneratePdfResult {
   toString(): string;
 }
 
-// Format number as Sri Lankan currency
-function fmtCurrency(n: number): string {
-  return 'Rs. ' + n.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Format numbers with thousands separators and 2 decimal places
+function fmtNumber(n: number | string | null | undefined): string {
+  if (n === null || n === undefined || n === '') return '0.00';
+  const num = typeof n === 'string' ? parseFloat(n.replace(/,/g, '')) : n;
+  if (isNaN(num)) return '0.00';
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Clamp single line text to maxWidth with ellipsis
-function clamp(text: string, font: any, size: number, maxWidth: number): string {
-  if (!text) return '';
-  if (font.widthOfTextAtSize(text, size) <= maxWidth) return text;
-  let t = text;
-  while (t.length > 1 && font.widthOfTextAtSize(t + '...', size) > maxWidth) {
-    t = t.slice(0, -1);
-  }
-  return t + '...';
+// Format file size nicely
+function fmtFileSize(size: number | string | null | undefined): string {
+  if (typeof size === 'string') return size;
+  if (!size || isNaN(size) || size <= 0) return '-';
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-// Resolve active temporary storage directory across development and production
-function resolveTempStorageDir(): string {
-  if (isServerless()) {
-    return getTempDir();
+// Format submission date timestamp
+function formatSubmissionTimestamp(d?: Date | string): string {
+  const date = d ? (typeof d === 'string' ? new Date(d) : d) : new Date();
+  const validDate = isNaN(date.getTime()) ? new Date() : date;
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = String(validDate.getDate()).padStart(2, '0');
+  const month = months[validDate.getMonth()];
+  const year = validDate.getFullYear();
+
+  let hours = validDate.getHours();
+  const minutes = String(validDate.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const strHours = String(hours).padStart(2, '0');
+
+  return `${day} ${month} ${year}, ${strHours}:${minutes} ${ampm}`;
+}
+
+/**
+ * Returns the designated PDF storage path for a given application reference.
+ * Vercel Serverless: /tmp/pdfs/[reference].pdf
+ * Local Development: [cwd]/storage/pdfs/[reference].pdf
+ */
+export function applicationPdfStoragePath(reference: string): string {
+  const safeRef = reference.replace(/[^A-Za-z0-9_-]/g, '') || 'submission';
+  const runningOnVercel =
+    process.env['VERCEL'] === '1' ||
+    process.env['VERCEL'] === 'true' ||
+    Boolean(process.env['VERCEL_ENV']) ||
+    isServerless();
+
+  if (runningOnVercel) {
+    const vercelPdf = path.join('/tmp', 'pdfs', `${safeRef}.pdf`);
+    if (existsSync(vercelPdf)) return vercelPdf;
+    const legacyTemp = path.join('/tmp', 'temp', `${safeRef}.pdf`);
+    if (existsSync(legacyTemp)) return legacyTemp;
+    return vercelPdf;
   }
+
   const cwd = process.cwd();
-  if (existsSync(join(cwd, 'storage', 'temp'))) {
-    return join(cwd, 'storage', 'temp');
+  const baseDir = existsSync(path.join(cwd, 'storage'))
+    ? path.join(cwd, 'storage', 'pdfs')
+    : existsSync(path.join(cwd, 'astro-award', 'storage'))
+      ? path.join(cwd, 'astro-award', 'storage', 'pdfs')
+      : path.join(cwd, 'storage', 'pdfs');
+
+  const localPdf = path.join(baseDir, `${safeRef}.pdf`);
+  if (existsSync(localPdf)) return localPdf;
+
+  // Check legacy candidates
+  const legacyCandidates = [
+    path.join(cwd, 'storage', 'temp', `${safeRef}.pdf`),
+    path.join(cwd, 'astro-award', 'storage', 'temp', `${safeRef}.pdf`),
+    path.join('/tmp', 'pdfs', `${safeRef}.pdf`),
+    path.join('/tmp', 'temp', `${safeRef}.pdf`),
+  ];
+  for (const c of legacyCandidates) {
+    if (existsSync(c)) return c;
   }
-  if (existsSync(join(cwd, 'astro-award', 'storage', 'temp'))) {
-    return join(cwd, 'astro-award', 'storage', 'temp');
-  }
-  return join(cwd, 'storage', 'temp');
+
+  return localPdf;
 }
 
-// Clean and decode incoming base64 signature string
-function decodeSignatureBuffer(raw: string): Buffer | null {
-  if (!raw || typeof raw !== 'string') return null;
-  const trimmed = raw.trim();
+// Safely resolve uploaded signature image Buffer from base64 data URI or serverless/local upload dirs
+async function resolveSignatureBuffer(bundle: PdfBundle): Promise<Buffer | null> {
+  const sig = bundle.signatureDataUri || bundle.signaturePath;
+  if (!sig || typeof sig !== 'string') return null;
+  const trimmed = sig.trim();
   if (!trimmed) return null;
-  // Strip data URI scheme prefix if present
-  const base64Clean = trimmed.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '').trim();
-  if (!base64Clean) return null;
-  try {
-    const buf = Buffer.from(base64Clean, 'base64');
-    // Basic verification: valid PNG or JPEG header or minimum size
-    if (buf.length < 16) return null;
-    return buf;
-  } catch {
-    return null;
-  }
-}
 
-// Draw visual status badge with crisp vector icon
-function drawStatusBadge(page: any, x: number, y: number, text: string, confirmed: boolean, fontBold: any) {
-  const badgeW = 145;
-  const badgeH = 17;
-  const bg = confirmed ? EMERALD_BG : RED_BG;
-  const border = confirmed ? EMERALD_BD : rgb(0.996, 0.792, 0.792);
-  const fg = confirmed ? EMERALD : RED_TEXT;
-
-  page.drawRectangle({
-    x, y, width: badgeW, height: badgeH,
-    color: bg, borderColor: border, borderWidth: 0.8,
-  });
-
-  if (confirmed) {
-    // Vector Checkmark (✓)
-    const cx = x + 7;
-    const cy = y + 5;
-    page.drawLine({ start: { x: cx, y: cy + 3.5 }, end: { x: cx + 2.5, y: cy }, color: fg, thickness: 1.4 });
-    page.drawLine({ start: { x: cx + 2.5, y: cy }, end: { x: cx + 7.5, y: cy + 7 }, color: fg, thickness: 1.4 });
-    page.drawText(text, { x: x + 18, y: y + 4.5, font: fontBold, size: 7.2, color: fg });
-  } else {
-    // Vector Cross (✗)
-    const cx = x + 7;
-    const cy = y + 5;
-    page.drawLine({ start: { x: cx, y: cy }, end: { x: cx + 6, y: cy + 6 }, color: fg, thickness: 1.4 });
-    page.drawLine({ start: { x: cx + 6, y: cy }, end: { x: cx, y: cy + 6 }, color: fg, thickness: 1.4 });
-    page.drawText('Not Met', { x: x + 18, y: y + 4.5, font: fontBold, size: 7.2, color: fg });
-  }
-}
-
-// Generate an executive-grade, strict 2-page A4 PDF dossier
-export async function generatePdf(bundle: PdfBundle): Promise<GeneratePdfResult> {
-  const doc = await PDFDocument.create();
-  const helveticaBold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const helvetica = await doc.embedFont(StandardFonts.Helvetica);
-  const helveticaOblique = await doc.embedFont(StandardFonts.HelveticaOblique);
-
-  const [W, H] = PageSizes.A4; // 595.28 x 841.89 points
-  const LM = 36, RM = W - 36, BM = 30;
-  const contentW = RM - LM; // 523.28 points
-
-  const drawSectionTitle = (pg: any, title: string, curY: number) => {
-    pg.drawText(title, { x: LM, y: curY, font: helveticaBold, size: 9.2, color: NAVY });
-    pg.drawLine({ start: { x: LM, y: curY - 3 }, end: { x: RM, y: curY - 3 }, color: NAVY, thickness: 1.5 });
-    return curY - 14;
-  };
-
-  const drawPageFooter = (pg: any, pageNum: number) => {
-    pg.drawLine({ start: { x: LM, y: BM + 14 }, end: { x: RM, y: BM + 14 }, color: SLATE_LT, thickness: 0.8 });
-    pg.drawText('CONFIDENTIAL • BEST DIVERSIFIED COMPANY AWARD 2025/26', {
-      x: LM, y: BM + 4, font: helvetica, size: 6.8, color: SLATE_MID,
-    });
-    const pageLabel = `Page ${pageNum} of 2`;
-    pg.drawText(pageLabel, {
-      x: RM - helvetica.widthOfTextAtSize(pageLabel, 6.8), y: BM + 4, font: helvetica, size: 6.8, color: SLATE_MID,
-    });
-  };
-
-  // =========================================================================
-  // PAGE 1: Organization Profile & Core Qualitative Criteria
-  // =========================================================================
-  const page1 = doc.addPage([W, H]);
-  let y = H - 32;
-
-  // Header Banner
-  const headerH = 68;
-  page1.drawRectangle({ x: LM, y: y - headerH, width: contentW, height: headerH, color: NAVY });
-  page1.drawLine({ start: { x: LM, y: y - headerH }, end: { x: RM, y: y - headerH }, color: AMBER, thickness: 3 });
-
-  page1.drawText('STATUTORY EVALUATION DOSSIER • FINANCIAL YEAR 2025/26', {
-    x: LM + 14, y: y - 18, font: helveticaBold, size: 7.2, color: rgb(0.576, 0.769, 0.992),
-  });
-  page1.drawText('BEST DIVERSIFIED COMPANY AWARD 2025/26', {
-    x: LM + 14, y: y - 36, font: helveticaBold, size: 14.5, color: WHITE,
-  });
-  page1.drawText('Official Corporate Qualification & Performance Application', {
-    x: LM + 14, y: y - 52, font: helvetica, size: 8.5, color: rgb(0.796, 0.835, 0.886),
-  });
-
-  // Reference Badge on Header Right
-  const pillW = 152, pillH = 36;
-  const pillX = RM - pillW - 12, pillY = y - headerH + 16;
-  page1.drawRectangle({
-    x: pillX, y: pillY, width: pillW, height: pillH,
-    color: WHITE, borderColor: rgb(0.85, 0.88, 0.92), borderWidth: 1,
-  });
-  page1.drawText(bundle.reference, {
-    x: pillX + 10, y: pillY + 20, font: helveticaBold, size: 9.5, color: NAVY,
-  });
-  const dateFormatted = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  page1.drawText(`Submitted: ${dateFormatted}`, {
-    x: pillX + 10, y: pillY + 8, font: helvetica, size: 7.2, color: SLATE_MID,
-  });
-
-  y -= headerH + 18;
-
-  // Section 1: Company Profile & Applicant Details
-  y = drawSectionTitle(page1, '1. COMPANY PROFILE & APPLICANT DETAILS', y);
-
-  const sec1H = 78;
-  page1.drawRectangle({
-    x: LM, y: y - sec1H, width: contentW, height: sec1H,
-    color: BG_LIGHT, borderColor: SLATE_LT, borderWidth: 1,
-  });
-
-  const colW = (contentW - 1) / 2;
-  const rowH = sec1H / 3;
-
-  // Horizontal and vertical grid dividers
-  page1.drawLine({ start: { x: LM + colW, y }, end: { x: LM + colW, y: y - sec1H }, color: SLATE_LT, thickness: 0.8 });
-  page1.drawLine({ start: { x: LM, y: y - rowH }, end: { x: RM, y: y - rowH }, color: SLATE_LT, thickness: 0.8 });
-  page1.drawLine({ start: { x: LM, y: y - rowH * 2 }, end: { x: RM, y: y - rowH * 2 }, color: SLATE_LT, thickness: 0.8 });
-
-  const renderKv = (pg: any, label: string, value: string, x: number, cellY: number, maxW: number) => {
-    pg.drawText(label.toUpperCase(), { x: x + 8, y: cellY - 9, font: helveticaBold, size: 6.5, color: SLATE_MID });
-    pg.drawText(clamp(value, helveticaBold, 8, maxW - 16), {
-      x: x + 8, y: cellY - 20, font: helveticaBold, size: 8, color: NAVY,
-    });
-  };
-
-  renderKv(page1, 'Company Name', bundle.companyName, LM, y, colW);
-  renderKv(page1, 'Financial Year Covered', bundle.financialYear, LM + colW, y, colW);
-
-  renderKv(page1, 'Nature of Operations', bundle.natureOperations, LM, y - rowH, colW);
-  renderKv(page1, 'Primary Contact Person', bundle.contactName, LM + colW, y - rowH, colW);
-
-  renderKv(page1, 'Official Email Address', bundle.contactEmail, LM, y - rowH * 2, colW);
-  renderKv(page1, 'Contact Telephone', bundle.contactPhone, LM + colW, y - rowH * 2, colW);
-
-  y -= sec1H + 18;
-
-  // Criteria 1: Mandatory Diversification Qualification
-  y = drawSectionTitle(page1, 'CRITERIA 1 – DIVERSIFICATION QUALIFICATION (CORE MANDATORY)', y);
-
-  const calloutH = 22;
-  page1.drawRectangle({
-    x: LM, y: y - calloutH, width: contentW, height: calloutH,
-    color: BLUE_CALL, borderColor: BLUE_BORD, borderWidth: 0.8,
-  });
-  page1.drawLine({ start: { x: LM, y }, end: { x: LM, y: y - calloutH }, color: BLUE_ACC, thickness: 3.5 });
-  page1.drawText('Mandatory Condition: Both new products/services AND new market entry must be confirmed to qualify.', {
-    x: LM + 10, y: y - 14, font: helvetica, size: 7.5, color: BLUE_ACC,
-  });
-  y -= calloutH + 8;
-
-  const badgeRowH = 24;
-  page1.drawRectangle({
-    x: LM, y: y - badgeRowH * 2, width: contentW, height: badgeRowH * 2,
-    color: WHITE, borderColor: SLATE_LT, borderWidth: 0.8,
-  });
-  page1.drawLine({ start: { x: LM, y: y - badgeRowH }, end: { x: RM, y: y - badgeRowH }, color: SLATE_LT, thickness: 0.6 });
-
-  page1.drawText('New Products / Services Introduced', { x: LM + 10, y: y - 16, font: helveticaBold, size: 7.8, color: NAVY });
-  drawStatusBadge(page1, RM - 155, y - 20, 'Confirmed & Verified', bundle.newProductsServices, helveticaBold);
-
-  page1.drawText('New Market Entered', { x: LM + 10, y: y - badgeRowH - 16, font: helveticaBold, size: 7.8, color: NAVY });
-  drawStatusBadge(page1, RM - 155, y - badgeRowH - 20, 'Confirmed & Verified', bundle.newMarketEntered, helveticaBold);
-
-  y -= badgeRowH * 2 + 6;
-
-  if (bundle.newMarketDetails && bundle.newMarketDetails.trim()) {
-    const narrH = 28;
-    page1.drawRectangle({
-      x: LM, y: y - narrH, width: contentW, height: narrH,
-      color: BG_LIGHT, borderColor: SLATE_LT, borderWidth: 0.8,
-    });
-    page1.drawText('NEW MARKET STRATEGIC DETAILS:', { x: LM + 8, y: y - 10, font: helveticaBold, size: 6.5, color: SLATE_MID });
-    page1.drawText(clamp(bundle.newMarketDetails, helvetica, 7.5, contentW - 20), {
-      x: LM + 8, y: y - 21, font: helvetica, size: 7.5, color: SLATE_DARK,
-    });
-    y -= narrH + 16;
-  } else {
-    y -= 14;
+  // 1. Data URI scheme
+  if (trimmed.startsWith('data:image/') || trimmed.includes(';base64,')) {
+    const base64Data = trimmed.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '').trim();
+    try {
+      const buf = Buffer.from(base64Data, 'base64');
+      if (buf.length > 16) return buf;
+    } catch { /* ignore */ }
   }
 
-  // Criteria 2: Diversification of Products / Services
-  y = drawSectionTitle(page1, 'CRITERIA 2 – DIVERSIFICATION OF PRODUCTS / SERVICES', y);
+  // 2. Pure base64 check
+  if (/^[A-Za-z0-9+/=]+$/.test(trimmed) && trimmed.length > 60) {
+    try {
+      const buf = Buffer.from(trimmed, 'base64');
+      if (buf.length > 16) return buf;
+    } catch { /* ignore */ }
+  }
 
-  // Exact Table Widths: # (8%), Product (32%), Description (60%)
-  const colNumW  = contentW * 0.08;
-  const colProdW = contentW * 0.32;
-  const colDescW = contentW * 0.60;
+  // 3. File path check across Vercel /tmp/uploads and local storage/uploads
+  const runningOnVercel =
+    process.env['VERCEL'] === '1' ||
+    process.env['VERCEL'] === 'true' ||
+    Boolean(process.env['VERCEL_ENV']) ||
+    isServerless();
 
-  const thH = 16;
-  page1.drawRectangle({ x: LM, y: y - thH, width: contentW, height: thH, color: rgb(0.945, 0.953, 0.969), borderColor: SLATE_LT, borderWidth: 0.8 });
-  page1.drawText('#', { x: LM + 12, y: y - 11, font: helveticaBold, size: 7, color: NAVY });
-  page1.drawText('PRODUCT / SERVICE INTRODUCED', { x: LM + colNumW + 8, y: y - 11, font: helveticaBold, size: 7, color: NAVY });
-  page1.drawText('BRIEF DESCRIPTION & STRATEGIC SCOPE', { x: LM + colNumW + colProdW + 8, y: y - 11, font: helveticaBold, size: 7, color: NAVY });
-  y -= thH;
+  const safeRef = bundle.reference.replace(/[^A-Za-z0-9_-]/g, '');
+  const candidateDirs = runningOnVercel
+    ? ['/tmp/uploads', `/tmp/uploads/${safeRef}`, '/tmp']
+    : [
+        path.resolve(process.cwd(), 'storage', 'uploads'),
+        path.resolve(process.cwd(), 'storage', 'uploads', safeRef),
+        path.resolve(process.cwd(), 'astro-award', 'storage', 'uploads'),
+        path.resolve(process.cwd(), 'astro-award', 'storage', 'uploads', safeRef),
+        path.resolve(process.cwd(), 'storage', 'temp'),
+        path.resolve('/tmp', 'uploads'),
+      ];
 
-  const productsList = bundle.products.length > 0 ? bundle.products : [{ name: 'N/A', description: 'No specific product rows registered.' }];
-  productsList.forEach((p, idx) => {
-    const rowH = 22;
-    const bg = idx % 2 === 1 ? BG_LIGHT : WHITE;
-    page1.drawRectangle({ x: LM, y: y - rowH, width: contentW, height: rowH, color: bg, borderColor: SLATE_LT, borderWidth: 0.6 });
-
-    page1.drawText(String(idx + 1), { x: LM + 14, y: y - 14, font: helveticaBold, size: 7.5, color: NAVY });
-    page1.drawText(clamp(p.name, helveticaBold, 7.5, colProdW - 14), {
-      x: LM + colNumW + 8, y: y - 14, font: helveticaBold, size: 7.5, color: NAVY,
-    });
-    page1.drawText(clamp(p.description, helvetica, 7.5, colDescW - 14), {
-      x: LM + colNumW + colProdW + 8, y: y - 14, font: helvetica, size: 7.5, color: SLATE_DARK,
-    });
-    y -= rowH;
-  });
-
-  drawPageFooter(page1, 1);
-
-
-  // =========================================================================
-  // PAGE 2: Audited Financials, Metrics Dashboard & Unified Declaration
-  // =========================================================================
-  const page2 = doc.addPage([W, H]);
-  y = H - 32;
-
-  // Mini Header on Page 2
-  const miniHeaderH = 32;
-  page2.drawRectangle({ x: LM, y: y - miniHeaderH, width: contentW, height: miniHeaderH, color: NAVY });
-  page2.drawLine({ start: { x: LM, y: y - miniHeaderH }, end: { x: RM, y: y - miniHeaderH }, color: AMBER, thickness: 2 });
-  page2.drawText('BEST DIVERSIFIED COMPANY AWARD 2025/26 • FINANCIAL PERFORMANCE DOSSIER', {
-    x: LM + 12, y: y - 20, font: helveticaBold, size: 7.5, color: WHITE,
-  });
-  const refPillText = `Ref: ${bundle.reference}`;
-  page2.drawText(refPillText, {
-    x: RM - helveticaBold.widthOfTextAtSize(refPillText, 8) - 12, y: y - 20, font: helveticaBold, size: 8, color: AMBER,
-  });
-
-  y -= miniHeaderH + 18;
-
-  // Criteria 3: Revenue from Diversification
-  y = drawSectionTitle(page2, 'CRITERIA 3 – REVENUE FROM DIVERSIFICATION', y);
-
-  // Revenue Hero Banner
-  const heroH = 34;
-  page2.drawRectangle({ x: LM, y: y - heroH, width: contentW, height: heroH, color: BG_LIGHT, borderColor: rgb(0.80, 0.84, 0.89), borderWidth: 1 });
-  page2.drawLine({ start: { x: LM, y }, end: { x: LM, y: y - heroH }, color: NAVY, thickness: 3.5 });
-  page2.drawText('TOTAL AUDITED COMPANY REVENUE (EVALUATION PERIOD)', {
-    x: LM + 12, y: y - 12, font: helveticaBold, size: 6.5, color: SLATE_MID,
-  });
-  page2.drawText(fmtCurrency(bundle.totalCompanyRevenue), {
-    x: LM + 12, y: y - 26, font: helveticaBold, size: 12.5, color: NAVY,
-  });
-  y -= heroH + 10;
-
-  // Structured Table: # (8%), Activity (44%), Revenue (28%), % of Total (20%)
-  const colRevNumW = contentW * 0.08;
-  const colRevActW = contentW * 0.44;
-  const colRevValW = contentW * 0.28;
-
-  page2.drawRectangle({ x: LM, y: y - thH, width: contentW, height: thH, color: rgb(0.945, 0.953, 0.969), borderColor: SLATE_LT, borderWidth: 0.8 });
-  page2.drawText('#', { x: LM + 12, y: y - 11, font: helveticaBold, size: 7, color: NAVY });
-  page2.drawText('DIVERSIFIED BUSINESS ACTIVITY', { x: LM + colRevNumW + 8, y: y - 11, font: helveticaBold, size: 7, color: NAVY });
-  const revThText = 'REVENUE (RS.)';
-  page2.drawText(revThText, { x: LM + colRevNumW + colRevActW + colRevValW - helveticaBold.widthOfTextAtSize(revThText, 7) - 8, y: y - 11, font: helveticaBold, size: 7, color: NAVY });
-  const pctThText = '% OF TOTAL';
-  page2.drawText(pctThText, { x: RM - helveticaBold.widthOfTextAtSize(pctThText, 7) - 8, y: y - 11, font: helveticaBold, size: 7, color: NAVY });
-  y -= thH;
-
-  const revRowsList = bundle.revenueRows.length > 0 ? bundle.revenueRows : [{ activity: 'N/A', revenue: 0, percent: 0 }];
-  revRowsList.forEach((r, idx) => {
-    const rowH = 18;
-    const bg = idx % 2 === 1 ? BG_LIGHT : WHITE;
-    page2.drawRectangle({ x: LM, y: y - rowH, width: contentW, height: rowH, color: bg, borderColor: SLATE_LT, borderWidth: 0.6 });
-
-    page2.drawText(String(idx + 1), { x: LM + 14, y: y - 12, font: helveticaBold, size: 7.5, color: NAVY });
-    page2.drawText(clamp(r.activity, helveticaBold, 7.5, colRevActW - 12), {
-      x: LM + colRevNumW + 8, y: y - 12, font: helveticaBold, size: 7.5, color: NAVY,
-    });
-
-    const revStr = fmtCurrency(r.revenue);
-    page2.drawText(revStr, {
-      x: LM + colRevNumW + colRevActW + colRevValW - helvetica.widthOfTextAtSize(revStr, 7.5) - 8,
-      y: y - 12, font: helvetica, size: 7.5, color: SLATE_DARK,
-    });
-
-    const pctVal = typeof r.percent === 'number' ? r.percent : (bundle.totalCompanyRevenue > 0 ? (r.revenue / bundle.totalCompanyRevenue * 100) : 0);
-    const pctStr = pctVal.toFixed(2) + '%';
-    page2.drawText(pctStr, {
-      x: RM - helveticaBold.widthOfTextAtSize(pctStr, 7.5) - 8,
-      y: y - 12, font: helveticaBold, size: 7.5, color: NAVY,
-    });
-    y -= rowH;
-  });
-
-  // Summary Footer Row
-  const sumH = 20;
-  page2.drawRectangle({ x: LM, y: y - sumH, width: contentW, height: sumH, color: rgb(0.882, 0.906, 0.941), borderColor: SLATE_LT, borderWidth: 0.8 });
-  page2.drawLine({ start: { x: LM, y }, end: { x: RM, y }, color: NAVY, thickness: 1.5 });
-  page2.drawText('TOTAL DIVERSIFICATION REVENUE', { x: LM + 10, y: y - 13.5, font: helveticaBold, size: 7.5, color: NAVY });
-
-  const totRevStr = fmtCurrency(bundle.diversificationTotal);
-  page2.drawText(totRevStr, {
-    x: LM + colRevNumW + colRevActW + colRevValW - helveticaBold.widthOfTextAtSize(totRevStr, 8) - 8,
-    y: y - 13.5, font: helveticaBold, size: 8, color: NAVY,
-  });
-
-  const totPctStr = bundle.combinedPercent.toFixed(2) + '%';
-  page2.drawText(totPctStr, {
-    x: RM - helveticaBold.widthOfTextAtSize(totPctStr, 8) - 8,
-    y: y - 13.5, font: helveticaBold, size: 8, color: EMERALD,
-  });
-
-  y -= sumH + 18;
-
-  // Criteria 4 & 5: Profit Margin, ROI & Payback Dashboard
-  y = drawSectionTitle(page2, 'CRITERIA 4 & 5 – PROFIT MARGIN, ROI & PAYBACK DASHBOARD', y);
-
-  // Criteria 4 Margin Strip
-  const marginStripH = 20;
-  page2.drawRectangle({ x: LM, y: y - marginStripH, width: contentW, height: marginStripH, color: BG_LIGHT, borderColor: SLATE_LT, borderWidth: 0.8 });
-  page2.drawLine({ start: { x: LM, y }, end: { x: LM, y: y - marginStripH }, color: BLUE_ACC, thickness: 3 });
-  page2.drawText('GROSS PROFIT MARGIN PERFORMANCE CATEGORY:', { x: LM + 10, y: y - 13, font: helveticaBold, size: 6.8, color: SLATE_MID });
-  page2.drawText(bundle.grossProfitMarginOption || 'Standard Performance', { x: LM + 200, y: y - 13, font: helveticaBold, size: 7.8, color: NAVY });
-  y -= marginStripH + 8;
-
-  // 4 Metric Cards Grid (2x2)
-  const cardGap = 8;
-  const mCardW = (contentW - cardGap) / 2;
-  const mCardH = 36;
-
-  const metricCards = [
-    { label: 'TOTAL INVESTMENT IN DIVERSIFICATION', value: fmtCurrency(bundle.totalInvestment), color: NAVY },
-    { label: 'OPERATING PROFIT GENERATED', value: fmtCurrency(bundle.operatingProfit), color: NAVY },
-    { label: 'RETURN ON INVESTMENT (ROI %)', value: bundle.roi.toFixed(2) + '%', color: EMERALD },
-    { label: 'ESTIMATED PAYBACK PERIOD (YEARS)', value: bundle.payback !== null ? bundle.payback.toFixed(2) + ' Years' : 'N/A', color: BLUE_ACC },
+  const candidatePaths = [
+    trimmed,
+    path.resolve(trimmed),
+    ...candidateDirs.map(d => path.join(d, trimmed)),
+    ...candidateDirs.map(d => path.join(d, path.basename(trimmed)))
   ];
 
-  [0, 2].forEach(startIdx => {
-    const rowY = y;
-    [startIdx, startIdx + 1].forEach((ci, col) => {
-      const card = metricCards[ci];
-      if (!card) return;
-      const cx = LM + col * (mCardW + cardGap);
-      page2.drawRectangle({
-        x: cx, y: rowY - mCardH, width: mCardW, height: mCardH,
-        color: WHITE, borderColor: rgb(0.80, 0.84, 0.89), borderWidth: 0.8,
-      });
-      page2.drawLine({ start: { x: cx, y: rowY }, end: { x: cx + mCardW, y: rowY }, color: NAVY, thickness: 2.5 });
-      page2.drawText(card.label, { x: cx + 10, y: rowY - 13, font: helveticaBold, size: 6.2, color: SLATE_MID });
-      page2.drawText(card.value, { x: cx + 10, y: rowY - 27, font: helveticaBold, size: 11, color: card.color });
-    });
-    y -= mCardH + 6;
-  });
-
-  y -= 12;
-
-  // Section 3: Declaration & Digital Signature Block (ATOMIC - NEVER SPLITS)
-  y = drawSectionTitle(page2, 'SECTION 3 – APPLICANT DECLARATION & DIGITAL SIGNATURE', y);
-
-  const declQuoteH = 32;
-  page2.drawRectangle({
-    x: LM, y: y - declQuoteH, width: contentW, height: declQuoteH,
-    color: BG_LIGHT, borderColor: SLATE_LT, borderWidth: 0.8,
-  });
-  page2.drawLine({ start: { x: LM, y }, end: { x: LM, y: y - declQuoteH }, color: EMERALD, thickness: 3.5 });
-  page2.drawText('"I/We hereby formally confirm and declare that the statements, operational details, and financial figures submitted in this', {
-    x: LM + 10, y: y - 11, font: helvetica, size: 7.2, color: rgb(0.20, 0.25, 0.33),
-  });
-  page2.drawText('application are true, accurate, and relate exclusively to verified New Products to New Markets diversification initiatives', {
-    x: LM + 10, y: y - 20, font: helvetica, size: 7.2, color: rgb(0.20, 0.25, 0.33),
-  });
-  page2.drawText('and strategically linked long-term capital investments for the 2025/26 evaluation period."', {
-    x: LM + 10, y: y - 29, font: helvetica, size: 7.2, color: rgb(0.20, 0.25, 0.33),
-  });
-  y -= declQuoteH + 8;
-
-  // Unified Declaration & Signature Card
-  const unifiedCardH = 92;
-  const leftColW = contentW * 0.58;
-  const rightColW = contentW * 0.42;
-
-  page2.drawRectangle({
-    x: LM, y: y - unifiedCardH, width: contentW, height: unifiedCardH,
-    color: WHITE, borderColor: rgb(0.80, 0.84, 0.89), borderWidth: 0.8,
-  });
-
-  // Vertical column boundary line
-  page2.drawLine({
-    start: { x: LM + leftColW, y }, end: { x: LM + leftColW, y: y - unifiedCardH },
-    color: SLATE_LT, thickness: 0.8,
-  });
-
-  // Left Column: Signatory details
-  const leftRowH = unifiedCardH / 4;
-  const lRender = (label: string, val: string, rIdx: number, isBadge = false) => {
-    const rowY = y - rIdx * leftRowH;
-    page2.drawText(label.toUpperCase(), { x: LM + 10, y: rowY - 14, font: helveticaBold, size: 6.5, color: SLATE_MID });
-    if (isBadge) {
-      drawStatusBadge(page2, LM + 110, rowY - 18, 'Legally Confirmed & Signed', true, helveticaBold);
-    } else {
-      page2.drawText(clamp(val, helveticaBold, 7.8, leftColW - 120), {
-        x: LM + 110, y: rowY - 14, font: helveticaBold, size: 7.8, color: NAVY,
-      });
+  for (const c of candidatePaths) {
+    if (existsSync(c)) {
+      try {
+        const buf = await readFile(c);
+        if (buf.length > 16) return buf;
+      } catch { /* ignore */ }
     }
-    if (rIdx < 3) {
-      page2.drawLine({ start: { x: LM, y: rowY - leftRowH }, end: { x: LM + leftColW, y: rowY - leftRowH }, color: SLATE_LT, thickness: 0.5 });
+  }
+
+  return null;
+}
+
+/**
+ * Generates an executive corporate 2-page A4 PDF application dossier matching the approved reference design.
+ */
+export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: string): Promise<GeneratePdfResult> {
+  const doc = new PDFDocument({
+    size: 'A4',
+    autoFirstPage: false,
+    margins: { top: 0, bottom: 0, left: 0, right: 0 },
+  });
+
+  const chunks: Buffer[] = [];
+  doc.on('data', c => chunks.push(c));
+
+  const pdfPromise = new Promise<Buffer>((resolve, reject) => {
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+  });
+
+  const LM = 42;
+  const contentW = 511.28;
+  const RM = LM + contentW; // 553.28
+
+  // Helper: Draw Section Bar with left amber stripe
+  function drawSectionBar(y: number, title: string): number {
+    const barH = 20;
+    doc.rect(LM, y, contentW, barH).fill(COLOR_SECTION_BG);
+    doc.rect(LM, y, 4.5, barH).fill(COLOR_AMBER);
+    doc.font('Helvetica-Bold').fontSize(11).fillColor(COLOR_TEXT_NAVY);
+    doc.text(title, LM + 10, y + 4.5);
+    return y + barH;
+  }
+
+  // Helper: Draw Table Outline
+  function drawTableOutline(x: number, y: number, w: number, h: number) {
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER).rect(x, y, w, h).stroke();
+  }
+
+  // Helper: Draw Page Footer
+  function drawFooter(pageNum: number) {
+    const footY = 800;
+    doc.font('Helvetica').fontSize(7.5).fillColor(COLOR_MUTED);
+    doc.text('Best Diversified Company Award 2025/26', LM, footY);
+    const rightText = `Page ${pageNum} / 2`;
+    const rightW = doc.widthOfString(rightText);
+    doc.text(rightText, RM - rightW, footY);
+  }
+
+  // =========================================================================
+  // PAGE 1: Company Profile & Core Qualitative Criteria
+  // =========================================================================
+  doc.addPage({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
+
+  // Top Navy Banner
+  const headY = 38;
+  const headH = 76;
+  doc.rect(LM, headY, contentW, headH).fill(COLOR_NAVY_HEADER);
+
+  // Title inside banner
+  doc.font('Helvetica-Bold').fontSize(15).fillColor(COLOR_WHITE);
+  doc.text('BEST DIVERSIFIED COMPANY AWARD 2025/26', LM + 12, headY + 12);
+
+  // Subtitle
+  const timestampStr = formatSubmissionTimestamp(bundle.submissionDate);
+  doc.font('Helvetica').fontSize(7.5).fillColor('#cbd5e1');
+  doc.text(`Application Submission - Generated ${timestampStr}`, LM + 12, headY + 34);
+
+  // Reference Line
+  const refText = `Reference: ${bundle.reference}`;
+  doc.font('Helvetica-Bold').fontSize(9).fillColor(COLOR_GOLD_REF);
+  doc.text(refText, LM + 12, headY + 49);
+
+  // Solid gold underline directly beneath Reference text
+  const refTextW = doc.widthOfString(refText);
+  doc.lineWidth(1.5).strokeColor(COLOR_GOLD_REF);
+  doc.moveTo(LM + 12, headY + 62).lineTo(LM + 12 + refTextW, headY + 62).stroke();
+
+  let curY = headY + headH + 20;
+
+  // Section 1 - Company Details
+  curY = drawSectionBar(curY, 'Section 1 - Company Details');
+  curY += 8;
+
+  // Table 1: Company details (5 rows)
+  const contactContact = [bundle.contactEmail, bundle.contactPhone].filter(Boolean).join(' / ');
+  const sec1Rows = [
+    ['Company Name', bundle.companyName || 'N/A'],
+    ['Financial Year Covered', bundle.financialYear || '2025/26'],
+    ['Nature of Operations', bundle.natureOperations || 'N/A'],
+    ['Contact Person', bundle.contactName || 'N/A'],
+    ['Email / Telephone', contactContact || 'N/A']
+  ];
+
+  const col1W = 145;
+  const col2W = contentW - col1W;
+  const rH = 17;
+
+  sec1Rows.forEach((r, idx) => {
+    const rowY = curY + idx * rH;
+    drawTableOutline(LM, rowY, contentW, rH);
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, rowY).lineTo(LM + col1W, rowY + rH).stroke();
+
+    doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(r[0]!, LM + 6, rowY + 4.5);
+
+    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(r[1]!, LM + col1W + 6, rowY + 4.5, { width: col2W - 12, height: rH - 4, ellipsis: true });
+  });
+
+  curY += sec1Rows.length * rH + 16;
+
+  // Section 2 - Evaluation Criterias
+  curY = drawSectionBar(curY, 'Section 2 - Evaluation Criterias');
+  curY += 12;
+
+  // Criteria 1 - Diversification Qualification (Mandatory)
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Criteria 1 - Diversification Qualification (Mandatory)', LM, curY);
+  curY += 14;
+
+  // Criteria 1 Table: 2 rows
+  const r1H = 26;
+  const r2H = 18;
+
+  // Row 1: New Products / Services Introduced
+  drawTableOutline(LM, curY, contentW, r1H);
+  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, curY).lineTo(LM + col1W, curY + r1H).stroke();
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('New Products / Services\nIntroduced', LM + 6, curY + 3.5, { lineGap: 1.5 });
+  doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text(bundle.newProductsServices ? 'Yes - confirmed' : 'No - not confirmed', LM + col1W + 6, curY + 8);
+  curY += r1H;
+
+  // Row 2: New Market Entered
+  drawTableOutline(LM, curY, contentW, r2H);
+  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, curY).lineTo(LM + col1W, curY + r2H).stroke();
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('New Market Entered', LM + 6, curY + 5);
+  doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text(bundle.newMarketEntered ? 'Yes - confirmed' : 'No - not confirmed', LM + col1W + 6, curY + 5);
+  curY += r2H + 4;
+
+  // Italic disclaimer note
+  doc.font('Helvetica-Oblique').fontSize(7.2).fillColor(COLOR_DISCLAIMER);
+  doc.text('Core qualification: both conditions above must be met for the application to qualify for evaluation.', LM, curY);
+  curY += 16;
+
+  // Criteria 2 - Diversification of Products / Services
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Criteria 2 - Diversification of Products / Services', LM, curY);
+  curY += 14;
+
+  // Products Table
+  const pCol1W = 35;
+  const pCol2W = 145;
+  const pCol3W = contentW - pCol1W - pCol2W;
+  const thH = 18;
+
+  // Table Header
+  doc.rect(LM, curY, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
+  doc.text('No.', LM + 6, curY + 5);
+  doc.text('Product / Service', LM + pCol1W + 6, curY + 5);
+  doc.text('Brief Description', LM + pCol1W + pCol2W + 6, curY + 5);
+  curY += thH;
+
+  // Products Data Rows
+  const prods = (bundle.products && bundle.products.length > 0)
+    ? bundle.products
+    : [{ name: 'N/A', description: 'N/A' }];
+
+  prods.forEach((p, idx) => {
+    const rowH = 18;
+    drawTableOutline(LM, curY, contentW, rowH);
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+      .moveTo(LM + pCol1W, curY).lineTo(LM + pCol1W, curY + rowH)
+      .moveTo(LM + pCol1W + pCol2W, curY).lineTo(LM + pCol1W + pCol2W, curY + rowH)
+      .stroke();
+
+    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(String(idx + 1), LM + 6, curY + 5);
+    doc.text(p.name, LM + pCol1W + 6, curY + 5, { width: pCol2W - 12, height: rowH - 4, ellipsis: true });
+    doc.text(p.description, LM + pCol1W + pCol2W + 6, curY + 5, { width: pCol3W - 12, height: rowH - 4, ellipsis: true });
+    curY += rowH;
+  });
+
+  curY += 14;
+
+  // Supporting Details Subheading
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Supporting Details', LM, curY);
+  curY += 12;
+
+  // Supporting Details Table (2 rows)
+  const divDetail = bundle.diversificationDetails || bundle.products?.[0]?.description || bundle.natureOperations || 'N/A';
+  const mktDetail = bundle.marketsCustomers || bundle.newMarketDetails || 'N/A';
+  const suppRows = [
+    ['Diversification Details', divDetail],
+    ['Markets & Customers', mktDetail]
+  ];
+
+  suppRows.forEach(sr => {
+    const rowH = 18;
+    drawTableOutline(LM, curY, contentW, rowH);
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, curY).lineTo(LM + col1W, curY + rowH).stroke();
+
+    doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(sr[0]!, LM + 6, curY + 5);
+
+    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(sr[1]!, LM + col1W + 6, curY + 5, { width: col2W - 12, height: rowH - 4, ellipsis: true });
+    curY += rowH;
+  });
+
+  curY += 16;
+
+  // Criteria 3 - Revenue from Diversification
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Criteria 3 - Revenue from Diversification', LM, curY);
+  curY += 14;
+
+  // Revenue Table Header
+  const rCol1W = 35;
+  const rCol2W = 210;
+  const rCol3W = 145;
+  const rCol4W = contentW - rCol1W - rCol2W - rCol3W; // 121.28
+
+  doc.rect(LM, curY, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
+  doc.text('No.', LM + 6, curY + 5);
+  doc.text('Business Activity', LM + rCol1W + 6, curY + 5);
+  doc.text('Revenue (Rs)', LM + rCol1W + rCol2W + 6, curY + 5);
+  doc.text('% Total', LM + rCol1W + rCol2W + rCol3W + 6, curY + 5);
+  curY += thH;
+
+  // Revenue Rows
+  const revRows = (bundle.revenueRows && bundle.revenueRows.length > 0)
+    ? bundle.revenueRows
+    : [{ activity: 'N/A', revenue: 0, percent: 0 }];
+
+  revRows.forEach((r, idx) => {
+    const rowH = 18;
+    drawTableOutline(LM, curY, contentW, rowH);
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+      .moveTo(LM + rCol1W, curY).lineTo(LM + rCol1W, curY + rowH)
+      .moveTo(LM + rCol1W + rCol2W, curY).lineTo(LM + rCol1W + rCol2W, curY + rowH)
+      .moveTo(LM + rCol1W + rCol2W + rCol3W, curY).lineTo(LM + rCol1W + rCol2W + rCol3W, curY + rowH)
+      .stroke();
+
+    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(String(idx + 1), LM + 6, curY + 5);
+    doc.text(r.activity, LM + rCol1W + 6, curY + 5, { width: rCol2W - 12, height: rowH - 4, ellipsis: true });
+    doc.text(fmtNumber(r.revenue), LM + rCol1W + rCol2W + 6, curY + 5);
+    doc.text(`${Number(r.percent).toFixed(2)}%`, LM + rCol1W + rCol2W + rCol3W + 6, curY + 5);
+    curY += rowH;
+  });
+
+  // Summary Row (TOTAL)
+  const sumH = 18;
+  drawTableOutline(LM, curY, contentW, sumH);
+  doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+    .moveTo(LM + rCol1W, curY).lineTo(LM + rCol1W, curY + sumH)
+    .moveTo(LM + rCol1W + rCol2W, curY).lineTo(LM + rCol1W + rCol2W, curY + sumH)
+    .moveTo(LM + rCol1W + rCol2W + rCol3W, curY).lineTo(LM + rCol1W + rCol2W + rCol3W, curY + sumH)
+    .stroke();
+
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('TOTAL', LM + rCol1W + 6, curY + 5);
+  doc.text(fmtNumber(bundle.diversificationTotal), LM + rCol1W + rCol2W + 6, curY + 5);
+  doc.text(`${Number(bundle.combinedPercent).toFixed(2)}%`, LM + rCol1W + rCol2W + rCol3W + 6, curY + 5);
+
+  drawFooter(1);
+
+  // =========================================================================
+  // PAGE 2: Financial Metrics, Declaration & Evidence Files
+  // =========================================================================
+  doc.addPage({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
+
+  let p2Y = 45;
+
+  // Criteria 4 - Gross Profit Margin Improvement
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Criteria 4 - Gross Profit Margin Improvement', LM, p2Y);
+  p2Y += 14;
+
+  // Criteria 4 Table (1 row)
+  const c4H = 18;
+  drawTableOutline(LM, p2Y, contentW, c4H);
+  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, p2Y).lineTo(LM + col1W, p2Y + c4H).stroke();
+
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('Selected Option', LM + 6, p2Y + 5);
+  doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text(bundle.grossProfitMarginOption || 'N/A', LM + col1W + 6, p2Y + 5, { width: col2W - 12, height: c4H - 4, ellipsis: true });
+  p2Y += c4H + 16;
+
+  // Criteria 5 - Return on Investment (ROI)
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Criteria 5 - Return on Investment (ROI)', LM, p2Y);
+  p2Y += 14;
+
+  // Criteria 5 Table (4 rows)
+  const paybackText = (bundle.payback !== null && bundle.payback !== undefined)
+    ? `${Number(bundle.payback).toFixed(2)} years`
+    : 'N/A';
+
+  const c5Rows = [
+    { label: 'Total Investment in\nDiversification', val: `Rs ${fmtNumber(bundle.totalInvestment)}`, h: 26 },
+    { label: 'Operating Profit from\nDiversification', val: `Rs ${fmtNumber(bundle.operatingProfit)}`, h: 26 },
+    { label: 'Return on Investment (ROI)', val: `${Number(bundle.roi).toFixed(2)}%`, h: 18 },
+    { label: 'Estimated Payback Period', val: paybackText, h: 18 }
+  ];
+
+  c5Rows.forEach(r => {
+    drawTableOutline(LM, p2Y, contentW, r.h);
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, p2Y).lineTo(LM + col1W, p2Y + r.h).stroke();
+
+    doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(r.label, LM + 6, p2Y + (r.h > 20 ? 3.5 : 5), { lineGap: 1.5 });
+
+    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(r.val, LM + col1W + 6, p2Y + (r.h > 20 ? 8 : 5));
+    p2Y += r.h;
+  });
+
+  p2Y += 20;
+
+  // Section 3 - Declaration
+  p2Y = drawSectionBar(p2Y, 'Section 3 - Declaration');
+  p2Y += 12;
+
+  // Confirmation paragraph
+  doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text(
+    'I/We confirm that the information provided above is accurate and relates exclusively to New Products to\nNew Markets diversification and strategically linked long-term investments.',
+    LM, p2Y, { lineGap: 2.5 }
+  );
+  p2Y += 28;
+
+  // Electronic Declaration & Signature Box
+  const sigBoxH = 100;
+  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).rect(LM, p2Y, contentW, sigBoxH).stroke();
+
+  doc.font('Helvetica-Bold').fontSize(8.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Electronic Declaration & Signature', LM + 10, p2Y + 10);
+
+  // Field: Name
+  const fieldY1 = p2Y + 28;
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('Name: ', LM + 10, fieldY1, { continued: true });
+  doc.font('Helvetica').text(bundle.declarationName || 'N/A');
+
+  // Field: Designation
+  const fieldY2 = p2Y + 44;
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('Designation: ', LM + 10, fieldY2, { continued: true });
+  doc.font('Helvetica').text(bundle.declarationDesignation || 'N/A');
+
+  // Field: Date
+  const fieldY3 = p2Y + 60;
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('Date: ', LM + 10, fieldY3, { continued: true });
+  doc.font('Helvetica').text(bundle.declarationDate || 'N/A');
+
+  // Field: Signature
+  const fieldY4 = p2Y + 78;
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('Signature:', LM + 10, fieldY4);
+
+  // Embed Signature Image safely if available
+  const sigBuf = await resolveSignatureBuffer(bundle);
+  let signatureRendered = false;
+
+  const isRealSig = (buf: Buffer | null): boolean => {
+    if (!buf || buf.length < 100) return false;
+    if (buf.length >= 24 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
+      const w = buf.readUInt32BE(16);
+      const h = buf.readUInt32BE(20);
+      if (w <= 5 || h <= 5) return false;
     }
+    return true;
   };
 
-  lRender('Authorized Signatory', bundle.declarationName, 0);
-  lRender('Official Designation', bundle.declarationDesignation, 1);
-  lRender('Date of Declaration', bundle.declarationDate, 2);
-  lRender('Declaration Status', '', 3, true);
-
-  // Right Column: Digital Signature Bounding Box
-  const sigRightX = LM + leftColW;
-  const sigLineY = y - unifiedCardH + 28;
-  const sigBoxW = rightColW - 30;
-  const sigBoxX = sigRightX + 15;
-
-  // Process signature image if available
-  let signatureEmbedded = false;
-  const sigBuf = decodeSignatureBuffer(bundle.signatureDataUri);
-
-  if (sigBuf) {
+  if (sigBuf && isRealSig(sigBuf)) {
     try {
-      let pngImg = await doc.embedPng(sigBuf).catch(() => null);
-      if (!pngImg) {
-        pngImg = await doc.embedJpg(sigBuf).catch(() => null);
-      }
-      if (pngImg) {
-        // Guard against degenerate or 1x1 dummy pixels
-        if (pngImg.width < 10 || pngImg.height < 10) {
-          signatureEmbedded = false;
-        } else {
-          // Enforce max-height: 55px; max-width: 200px
-          const maxW = Math.min(sigBoxW, 200);
-          const maxH = 50;
-          let dims = pngImg.scaleToFit(maxW, maxH);
-          if (pngImg.width <= maxW && pngImg.height <= maxH) {
-            dims = { width: pngImg.width, height: pngImg.height };
-          }
-          const imgX = sigBoxX + (sigBoxW - dims.width) / 2;
-          const imgY = sigLineY + (50 - dims.height) / 2 + 3;
-          page2.drawImage(pngImg, {
-            x: imgX,
-            y: imgY,
-            width: dims.width,
-            height: dims.height,
-          });
-          signatureEmbedded = true;
-        }
-      }
+      doc.image(sigBuf, LM + 95, fieldY4 - 10, { fit: [110, 32] });
+      signatureRendered = true;
     } catch {
-      signatureEmbedded = false;
+      signatureRendered = false;
     }
   }
 
-  // If signature missing or corrupt, render clean italic fallback note
-  if (!signatureEmbedded) {
-    const fallbackText = '[Digitally Authenticated upon Submission]';
-    const fbW = helveticaOblique.widthOfTextAtSize(fallbackText, 7.5);
-    page2.drawText(fallbackText, {
-      x: sigBoxX + (sigBoxW - fbW) / 2, y: sigLineY + 16, font: helveticaOblique, size: 7.5, color: SLATE_MID,
-    });
+  if (!signatureRendered) {
+    // Elegant digital authentication indicator
+    doc.font('Helvetica-Oblique').fontSize(7.5).fillColor(COLOR_MUTED);
+    doc.text('[Digitally Authenticated upon Submission]', LM + 95, fieldY4);
   }
 
-  // Draw formal signature line
-  page2.drawLine({
-    start: { x: sigBoxX, y: sigLineY }, end: { x: sigBoxX + sigBoxW, y: sigLineY },
-    color: NAVY, thickness: 1,
+  p2Y += sigBoxH + 20;
+
+  // Evidence Files Table
+  doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Evidence Files', LM, p2Y);
+  p2Y += 14;
+
+  const eCol1W = 35;
+  const eCol2W = 340;
+  const eCol3W = contentW - eCol1W - eCol2W; // 136.28
+
+  doc.rect(LM, p2Y, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
+  doc.text('No.', LM + 6, p2Y + 5);
+  doc.text('File Name', LM + eCol1W + 6, p2Y + 5);
+  doc.text('Size', LM + eCol1W + eCol2W + 6, p2Y + 5);
+  p2Y += thH;
+
+  const evFiles = (bundle.evidenceFiles && bundle.evidenceFiles.length > 0)
+    ? bundle.evidenceFiles
+    : [{ name: 'No evidence files attached', size: 0 }];
+
+  evFiles.forEach((f, idx) => {
+    const rowH = 18;
+    drawTableOutline(LM, p2Y, contentW, rowH);
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+      .moveTo(LM + eCol1W, p2Y).lineTo(LM + eCol1W, p2Y + rowH)
+      .moveTo(LM + eCol1W + eCol2W, p2Y).lineTo(LM + eCol1W + eCol2W, p2Y + rowH)
+      .stroke();
+
+    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+    doc.text(String(idx + 1), LM + 6, p2Y + 5);
+    doc.text(f.name, LM + eCol1W + 6, p2Y + 5, { width: eCol2W - 12, height: rowH - 4, ellipsis: true });
+    doc.text(fmtFileSize(f.size), LM + eCol1W + eCol2W + 6, p2Y + 5);
+    p2Y += rowH;
   });
 
-  // Caption beneath line
-  const sigCap = 'AUTHORIZED DIGITAL SIGNATURE';
-  const sigCapW = helveticaBold.widthOfTextAtSize(sigCap, 6.5);
-  page2.drawText(sigCap, {
-    x: sigBoxX + (sigBoxW - sigCapW) / 2, y: sigLineY - 9, font: helveticaBold, size: 6.5, color: SLATE_MID,
-  });
+  drawFooter(2);
 
-  const sigNameSub = bundle.declarationName;
-  const sigNameSubW = helvetica.widthOfTextAtSize(sigNameSub, 6.2);
-  page2.drawText(sigNameSub, {
-    x: sigBoxX + (sigBoxW - sigNameSubW) / 2, y: sigLineY - 17, font: helvetica, size: 6.2, color: SLATE_DARK,
-  });
+  // Finalize PDFKit document
+  doc.end();
+  const pdfBuffer = await pdfPromise;
 
-  drawPageFooter(page2, 2);
+  // File persistence pipeline
+  const finalFilePath = targetPath ? path.resolve(targetPath) : applicationPdfStoragePath(bundle.reference);
+  const targetDir = path.dirname(finalFilePath);
 
-  // =========================================================================
-  // Storage & Streaming Pipeline (Filesystem & Raw Buffer)
-  // =========================================================================
-  const pdfBytes = await doc.save();
-  const pdfBuffer = Buffer.from(pdfBytes);
-
-  const safeRef = bundle.reference.replace(/[^A-Za-z0-9_-]/g, '') || 'submission';
-  const storageTempDir = resolveTempStorageDir();
-
-  // Ensure directories exist safely
-  const refSubDir = join(storageTempDir, safeRef);
-  await ensureDir(storageTempDir);
-  await ensureDir(refSubDir);
-
-  // Write to both storage/temp/[reference].pdf and storage/temp/[reference]/[reference].pdf
-  const primaryFilePath = join(storageTempDir, `${safeRef}.pdf`);
-  const nestedFilePath  = join(refSubDir, `${safeRef}.pdf`);
-
-  await writeFile(primaryFilePath, pdfBuffer);
-  await writeFile(nestedFilePath, pdfBuffer);
-
-  // Enforce restrictive file permissions (0640)
-  await chmod(primaryFilePath, 0o640).catch(() => {});
-  await chmod(nestedFilePath, 0o640).catch(() => {});
+  await ensureDir(targetDir);
+  await writeFile(finalFilePath, pdfBuffer);
+  await chmod(finalFilePath, 0o640).catch(() => {});
 
   const result: GeneratePdfResult = {
-    filePath: primaryFilePath,
+    filePath: finalFilePath,
     buffer: pdfBuffer,
     toString() {
-      return primaryFilePath;
+      return finalFilePath;
     },
   };
 
   return result;
 }
 
-// Return expected PDF path for reference (checked by download endpoint)
-export function pdfStoragePath(reference: string): string {
-  const safeRef = reference.replace(/[^A-Za-z0-9_-]/g, '') || 'submission';
-  const storageTempDir = resolveTempStorageDir();
-  const candidates = [
-    join(storageTempDir, `${safeRef}.pdf`),
-    join(storageTempDir, safeRef, `${safeRef}.pdf`),
-    join('/tmp', 'temp', `${safeRef}.pdf`),
-    join('/tmp', 'temp', safeRef, `${safeRef}.pdf`),
-    join(process.cwd(), 'storage', 'temp', `${safeRef}.pdf`),
-    join(process.cwd(), 'storage', 'temp', safeRef, `${safeRef}.pdf`),
-  ];
-  for (const c of candidates) {
-    if (existsSync(c)) return c;
-  }
-  return join(storageTempDir, `${safeRef}.pdf`);
-}
+// Backwards compatibility aliases for existing codebase callers
+export const generatePdf = generateApplicationPdf;
+export const pdfStoragePath = applicationPdfStoragePath;
 
-// Garbage collect temp PDFs older than 24 hours
+/**
+ * Garbage-collects generated PDFs older than 24 hours in temporary directories.
+ */
 export async function gcTempStorage(): Promise<void> {
   try {
-    const storageTempDir = resolveTempStorageDir();
-    if (!existsSync(storageTempDir)) return;
-    const entries = await readdir(storageTempDir);
+    const isVercel = process.env['VERCEL'] === '1' || process.env['VERCEL'] === 'true' || isServerless();
+    const pdfDir = isVercel
+      ? path.join('/tmp', 'pdfs')
+      : path.resolve(process.cwd(), 'storage', 'pdfs');
+
+    if (!existsSync(pdfDir)) return;
+    const entries = await readdir(pdfDir);
     const cutoff = Date.now() - 24 * 60 * 60 * 1000;
 
-    await Promise.all(entries.map(async name => {
-      if (name.startsWith('.')) return;
-      const full = join(storageTempDir, name);
-      try {
-        const s = await stat(full);
-        if (s.mtimeMs < cutoff) {
-          await rm(full, { recursive: true, force: true });
-        }
-      } catch { /* ignore individual stat/rm error */ }
-    }));
+    await Promise.all(
+      entries.map(async name => {
+        if (name.startsWith('.')) return;
+        const full = path.join(pdfDir, name);
+        try {
+          const s = await stat(full);
+          if (s.mtimeMs < cutoff) {
+            await rm(full, { recursive: true, force: true });
+          }
+        } catch { /* ignore individual stat/rm error */ }
+      })
+    );
   } catch { /* non-fatal */ }
 }

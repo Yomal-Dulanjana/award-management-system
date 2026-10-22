@@ -1,7 +1,7 @@
 // GET /api/download — HMAC token-verified PDF download endpoint
 import type { APIRoute } from 'astro';
 import { verifyDownloadToken } from '@/lib/security';
-import { pdfStoragePath, generatePdf } from '@/lib/pdf';
+import { applicationPdfStoragePath, generateApplicationPdf, pdfStoragePath, generatePdf } from '@/lib/pdf';
 import { isAllowedStoragePath } from '@/lib/storage';
 import { db, initDb } from '@/db';
 import { applications } from '@/db/schema';
@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  let filePath = pdfStoragePath(ref);
+  let filePath = applicationPdfStoragePath(ref);
   if (!existsSync(filePath)) {
     // In serverless environments, the container /tmp may be empty.
     // Seamlessly regenerate from persisted application record in database.
@@ -39,7 +39,7 @@ export const GET: APIRoute = async ({ url }) => {
       const app = records[0];
       if (app && app.data_json) {
         const data = app.data_json as any;
-        const pdfResult = await generatePdf({
+        const pdfResult = await generateApplicationPdf({
           reference: ref,
           companyName: data.company_name,
           financialYear: data.financial_year,
@@ -50,7 +50,9 @@ export const GET: APIRoute = async ({ url }) => {
           newProductsServices: data.new_products_services,
           newMarketEntered: data.new_market_entered,
           newMarketDetails: data.new_market_details,
-          products: data.products,
+          diversificationDetails: data.diversification_details || data.new_market_details || (data.products?.[0]?.description ?? ''),
+          marketsCustomers: data.markets_customers || data.new_market_details,
+          products: data.products || [],
           grossProfitMarginOption: data.gross_profit_margin_option,
           totalCompanyRevenue: data.total_company_revenue,
           revenueRows: data.metrics?.revenueRows || [],
@@ -64,6 +66,8 @@ export const GET: APIRoute = async ({ url }) => {
           declarationDesignation: data.declaration_designation,
           declarationDate: data.declaration_date,
           signatureDataUri: data.signature_data,
+          evidenceFiles: data.evidence_files || [],
+          submissionDate: app.submitted_at || new Date(),
         });
         filePath = pdfResult.filePath;
       }
