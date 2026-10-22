@@ -1,0 +1,530 @@
+---
+// src/pages/admin/dashboard.astro — Administrator Applications Overview
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { db, initDb } from "@/db";
+import { applications } from "@/db/schema";
+import { desc } from "drizzle-orm";
+
+await initDb();
+
+console.log("--- DB CONNECTION CHECK ---");
+console.log(
+  "Connected DB URL:",
+  process.env.DATABASE_URL
+    ? process.env.DATABASE_URL.split("@")[1]
+    : "NOT FOUND",
+);
+// Fetch all applications ordered by newest submission first
+const allApplications = await db
+  .select()
+  .from(applications)
+  .orderBy(desc(applications.submitted_at));
+
+console.log("Total Apps Fetched:", allApplications.length);
+console.log("---------------------------");
+
+// Compute overview metrics
+const totalCount = allApplications.length;
+const pendingCount = allApplications.filter(
+  (a) => a.status === "PENDING",
+).length;
+const underReviewCount = allApplications.filter(
+  (a) => a.status === "UNDER_REVIEW",
+).length;
+const approvedCount = allApplications.filter(
+  (a) => a.status === "APPROVED",
+).length;
+const rejectedCount = allApplications.filter(
+  (a) => a.status === "REJECTED",
+).length;
+
+// Currency / Date helpers
+const fmtDate = (d: Date | string) => {
+  const date = new Date(d);
+  return date.toLocaleDateString("en-LK", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+---
+
+<AdminLayout
+  title="Applications Dashboard | Best Diversified Company Award"
+  activeNav="dashboard"
+>
+  <div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          Applications Dashboard
+        </h1>
+        <p class="mt-1 text-sm text-slate-400">
+          Review, evaluate, and track candidate submissions for the 2025/26
+          Diversification Award.
+        </p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <a
+          href="/admin/dashboard"
+          class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors"
+        >
+          <svg
+            class="w-4 h-4 text-slate-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <span>Refresh Data</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Overview Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <!-- Total Applications -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Total Submissions
+          </span>
+          <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-baseline space-x-2">
+          <span class="text-3xl font-extrabold text-white tracking-tight">
+            {totalCount}
+          </span>
+          <span class="text-xs text-slate-400">Registered</span>
+        </div>
+      </div>
+
+      <!-- Pending Reviews -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-amber-500/30 transition-all">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Pending Review
+          </span>
+          <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-baseline space-x-2">
+          <span class="text-3xl font-extrabold text-amber-400 tracking-tight">
+            {pendingCount}
+          </span>
+          <span class="text-xs text-slate-400">Awaiting Action</span>
+        </div>
+      </div>
+
+      <!-- Under Review -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-indigo-500/30 transition-all">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Under Review
+          </span>
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-baseline space-x-2">
+          <span class="text-3xl font-extrabold text-indigo-400 tracking-tight">
+            {underReviewCount}
+          </span>
+          <span class="text-xs text-slate-400">In Evaluation</span>
+        </div>
+      </div>
+
+      <!-- Approved Candidates -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Approved Candidates
+          </span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-4 flex items-baseline space-x-2">
+          <span class="text-3xl font-extrabold text-emerald-400 tracking-tight">
+            {approvedCount}
+          </span>
+          <span class="text-xs text-slate-400">Qualified</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions Table Section -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+      <!-- Search & Filters Toolbar -->
+      <div class="p-4 sm:p-6 border-b border-slate-800 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+        <div class="relative flex-1 max-w-md">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search by Reference No, Company Name, or Contact..."
+            class="block w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+          />
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <label
+            for="statusFilter"
+            class="text-xs font-semibold uppercase tracking-wider text-slate-400"
+          >
+            Status:
+          </label>
+          <select
+            id="statusFilter"
+            class="bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+          >
+            <option value="ALL">All Submissions ({totalCount})</option>
+            <option value="PENDING">Pending ({pendingCount})</option>
+            <option value="UNDER_REVIEW">
+              Under Review ({underReviewCount})
+            </option>
+            <option value="APPROVED">Approved ({approvedCount})</option>
+            <option value="REJECTED">Rejected ({rejectedCount})</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Responsive Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-950/60 text-xs uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-800">
+            <tr>
+              <th scope="col" class="px-6 py-4">
+                Reference No
+              </th>
+              <th scope="col" class="px-6 py-4">
+                Company Name
+              </th>
+              <th scope="col" class="px-6 py-4">
+                Contact Person
+              </th>
+              <th scope="col" class="px-6 py-4 text-right">
+                ROI %
+              </th>
+              <th scope="col" class="px-6 py-4">
+                Submitted Date
+              </th>
+              <th scope="col" class="px-6 py-4 text-center">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-4 text-right">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            id="applicationsTableBody"
+            class="divide-y divide-slate-800/80 font-normal"
+          >
+            {allApplications.length === 0 ? (
+              <tr>
+                <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                  <div class="flex flex-col items-center justify-center">
+                    <svg
+                      class="w-12 h-12 text-slate-600 mb-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <p class="text-base font-semibold text-slate-300">
+                      No applications submitted yet
+                    </p>
+                    <p class="text-xs text-slate-400 mt-1">
+                      Applications submitted via the public form will appear
+                      here in real-time.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              allApplications.map((app) => (
+                <tr
+                  class="application-row hover:bg-slate-800/40 transition-colors"
+                  data-reference={app.reference.toLowerCase()}
+                  data-company={app.company_name.toLowerCase()}
+                  data-contact={app.contact_name.toLowerCase()}
+                  data-email={app.contact_email.toLowerCase()}
+                  data-status={app.status}
+                >
+                  <!-- Reference No -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-slate-800 border border-slate-700 text-amber-400 tracking-wide">
+                      {app.reference}
+                    </span>
+                  </td>
+
+                  <!-- Company Name -->
+                  <td class="px-6 py-4 font-semibold text-white whitespace-nowrap">
+                    <a
+                      href={`/admin/applications/${app.reference}`}
+                      class="hover:text-amber-400 transition-colors"
+                    >
+                      {app.company_name}
+                    </a>
+                  </td>
+
+                  <!-- Contact -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-white text-xs font-medium">
+                      {app.contact_name}
+                    </div>
+                    <div class="text-slate-400 text-xs font-mono mt-0.5">
+                      {app.contact_email}
+                    </div>
+                  </td>
+
+                  <!-- ROI % -->
+                  <td class="px-6 py-4 whitespace-nowrap text-right font-mono font-bold">
+                    <span
+                      class={
+                        Number(app.roi_percent) >= 20
+                          ? "text-emerald-400"
+                          : "text-slate-200"
+                      }
+                    >
+                      {Number(app.roi_percent).toFixed(2)}%
+                    </span>
+                  </td>
+
+                  <!-- Submitted Date -->
+                  <td class="px-6 py-4 whitespace-nowrap text-slate-400 text-xs font-mono">
+                    {fmtDate(app.submitted_at)}
+                  </td>
+
+                  <!-- Status Pill -->
+                  <td class="px-6 py-4 whitespace-nowrap text-center">
+                    {app.status === "PENDING" && (
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>
+                        Pending
+                      </span>
+                    )}
+                    {app.status === "UNDER_REVIEW" && (
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 mr-1.5"></span>
+                        Under Review
+                      </span>
+                    )}
+                    {app.status === "APPROVED" && (
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5"></span>
+                        Approved
+                      </span>
+                    )}
+                    {app.status === "REJECTED" && (
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-400 mr-1.5"></span>
+                        Rejected
+                      </span>
+                    )}
+                  </td>
+
+                  <!-- Action -->
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-xs">
+                    <a
+                      href={`/admin/applications/${app.reference}`}
+                      class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold transition-all hover:scale-[1.02]"
+                    >
+                      <span>Review</span>
+                      <svg
+                        class="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </a>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- No Results from Search Filter -->
+      <div
+        id="noMatchMessage"
+        class="hidden px-6 py-12 text-center text-slate-400 border-t border-slate-800"
+      >
+        <p class="text-sm font-semibold text-slate-300">
+          No matching submissions found
+        </p>
+        <p class="text-xs text-slate-400 mt-1">
+          Try refining your search keyword or changing the status filter.
+        </p>
+      </div>
+
+      <!-- Footer count info -->
+      <div class="p-4 bg-slate-950/60 border-t border-slate-800 text-xs text-slate-400 flex justify-between items-center">
+        <span id="showingCount">
+          Showing {totalCount} of {totalCount} submissions
+        </span>
+        <span class="font-mono text-[11px] text-slate-400">
+          Database Engine: MySQL
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side real-time Search & Filter Script -->
+  <script>
+    const searchInput = document.getElementById(
+      "searchInput",
+    ) as HTMLInputElement | null;
+    const statusFilter = document.getElementById(
+      "statusFilter",
+    ) as HTMLSelectElement | null;
+    const rows =
+      document.querySelectorAll<HTMLTableRowElement>(".application-row");
+    const noMatchMessage = document.getElementById("noMatchMessage");
+    const showingCount = document.getElementById("showingCount");
+    const totalRows = rows.length;
+
+    function applyFilter() {
+      const query = (searchInput?.value ?? "").toLowerCase().trim();
+      const selectedStatus = (statusFilter?.value ?? "ALL").toUpperCase();
+
+      let visibleCount = 0;
+
+      rows.forEach((row) => {
+        const ref = row.getAttribute("data-reference") ?? "";
+        const company = row.getAttribute("data-company") ?? "";
+        const contact = row.getAttribute("data-contact") ?? "";
+        const email = row.getAttribute("data-email") ?? "";
+        const status = row.getAttribute("data-status") ?? "";
+
+        const matchesQuery =
+          !query ||
+          ref.includes(query) ||
+          company.includes(query) ||
+          contact.includes(query) ||
+          email.includes(query);
+        const matchesStatus =
+          selectedStatus === "ALL" || status === selectedStatus;
+
+        if (matchesQuery && matchesStatus) {
+          row.style.display = "";
+          visibleCount++;
+        } else {
+          row.style.display = "none";
+        }
+      });
+
+      if (noMatchMessage) {
+        if (visibleCount === 0 && totalRows > 0) {
+          noMatchMessage.classList.remove("hidden");
+        } else {
+          noMatchMessage.classList.add("hidden");
+        }
+      }
+
+      if (showingCount) {
+        showingCount.textContent = `Showing ${visibleCount} of ${totalRows} submissions`;
+      }
+    }
+
+    searchInput?.addEventListener("input", applyFilter);
+    statusFilter?.addEventListener("change", applyFilter);
+  </script>
+</AdminLayout>

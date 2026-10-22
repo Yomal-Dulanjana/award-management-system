@@ -1,0 +1,1450 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import SignaturePad from '@/components/signature/SignaturePad.astro';
+---
+
+<Layout title="Apply - Best Diversified Company Award 2025/26">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+    <!-- Back link -->
+    <a
+      href="/"
+      class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-amber-400 mb-6 transition-colors"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      <span>Back to Award Overview</span>
+    </a>
+
+    <!-- Top Card: Header & Progress Bar -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+        <div>
+          <span class="text-xs uppercase font-bold text-amber-400 tracking-wider">Application Dossier</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Official Submission Form</h1>
+        </div>
+        <div class="text-right">
+          <span id="step-counter" class="text-xs font-mono font-bold text-amber-400 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20">
+            Step 1 of 6
+          </span>
+        </div>
+      </div>
+
+      <!-- Animated Progress Bar -->
+      <div class="mt-6">
+        <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+          <div
+            id="step-progress-bar"
+            class="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-300 ease-out"
+            style="width: 16.66%"
+          ></div>
+        </div>
+        <div class="flex justify-between text-[11px] font-medium text-slate-400 mt-2.5 hidden sm:flex">
+          <span class="step-lbl" data-step="1">1. Company</span>
+          <span class="step-lbl" data-step="2">2. Qualification</span>
+          <span class="step-lbl" data-step="3">3. Revenue</span>
+          <span class="step-lbl" data-step="4">4. Margin</span>
+          <span class="step-lbl" data-step="5">5. ROI</span>
+          <span class="step-lbl" data-step="6">6. Declaration</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert Banner -->
+    <div
+      id="error-banner"
+      class="hidden bg-rose-950/60 border border-rose-800 text-rose-200 px-5 py-4 rounded-2xl mb-8 flex items-start gap-3 text-sm animate-shake"
+      role="alert"
+    >
+      <svg class="w-5 h-5 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <div id="error-message" class="flex-1 font-medium">Please correct the highlighted fields.</div>
+    </div>
+
+    <!-- Draft notification -->
+    <div
+      id="draft-banner"
+      class="hidden bg-blue-950/60 border border-blue-800 text-blue-200 px-5 py-3 rounded-2xl mb-6 flex items-center justify-between text-xs"
+    >
+      <span class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Restored saved draft from local storage.
+      </span>
+      <button type="button" id="clear-draft-btn" class="text-rose-400 hover:text-rose-300 font-semibold underline">
+        Discard Draft
+      </button>
+    </div>
+
+    <!-- Main Wizard Form Container -->
+    <form id="award-form" class="space-y-8" novalidate>
+      <!-- Honeypot anti-spam field -->
+      <input
+        type="text"
+        name="website_url"
+        value=""
+        autocomplete="off"
+        tabindex="-1"
+        aria-hidden="true"
+        style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none"
+      />
+
+      <!-- STEP 1: Company Details & Contact -->
+      <section class="wizard-step bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="1">
+        <div>
+          <h2 class="text-xl font-bold text-white">1. Company Details & Contact Information</h2>
+          <p class="text-slate-400 text-xs mt-1">Specify applicant identity, nature of enterprise, and designated officer.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Company Name <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="company_name"
+              required
+              placeholder="e.g. Acme Industrial Group PLC"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Financial Year Covered
+            </label>
+            <input
+              type="text"
+              name="financial_year"
+              value="2025/26"
+              readonly
+              class="w-full bg-slate-800/40 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-400 cursor-not-allowed select-none"
+            />
+          </div>
+
+          <div class="sm:col-span-2 space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Nature of Operations <span class="text-rose-400">*</span>
+            </label>
+            <select
+              name="nature_operations"
+              required
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            >
+              <option value="">Select category...</option>
+              <option value="Manufacturing">Manufacturing</option>
+              <option value="Services">Services</option>
+              <option value="Trading">Trading</option>
+              <option value="Mixed">Mixed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-800">
+          <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-4">Designated Contact Person</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="sm:col-span-2 space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Name & Designation <span class="text-rose-400">*</span>
+              </label>
+              <input
+                type="text"
+                name="contact_name_designation"
+                required
+                placeholder="e.g. A. B. Perera - Managing Director"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Email Address <span class="text-rose-400">*</span>
+              </label>
+              <input
+                type="email"
+                name="contact_email"
+                required
+                placeholder="e.g. perera@acme.com"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Telephone <span class="text-rose-400">*</span>
+              </label>
+              <input
+                type="tel"
+                name="contact_phone"
+                required
+                placeholder="e.g. +94 11 234 5678"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-4">
+          <button
+            type="button"
+            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+          >
+            <span>Continue to Step 2</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 2: Qualification & Diversified Products -->
+      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="2">
+        <div>
+          <h2 class="text-xl font-bold text-white">2. Diversification Qualification & Activities</h2>
+          <p class="text-slate-400 text-xs mt-1">Both qualification conditions are mandatory under award statute.</p>
+        </div>
+
+        <!-- Mandatory Choices Box -->
+        <div class="bg-blue-950/40 border border-blue-900/60 rounded-2xl p-5 space-y-4">
+          <div class="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Mandatory Core Criteria</span>
+          </div>
+
+          <div class="space-y-3">
+            <label class="flex items-start gap-3 cursor-pointer p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-colors">
+              <input
+                type="checkbox"
+                name="new_products_services"
+                value="true"
+                class="mt-1 w-4 h-4 rounded text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400 focus:ring-offset-0"
+                required
+              />
+              <span class="text-sm">
+                <strong class="text-white block">New Products / Services Introduced</strong>
+                <span class="text-slate-400 text-xs">The product or service did not exist in the company prior to this initiative.</span>
+              </span>
+            </label>
+
+            <label class="flex items-start gap-3 cursor-pointer p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-colors">
+              <input
+                type="checkbox"
+                name="new_market_entered"
+                value="true"
+                class="mt-1 w-4 h-4 rounded text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400 focus:ring-offset-0"
+                required
+              />
+              <span class="text-sm">
+                <strong class="text-white block">New Market Entered</strong>
+                <span class="text-slate-400 text-xs">A customer segment, industry, or geographic market not previously served.</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Products Repeater -->
+        <div class="space-y-4 pt-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Diversified Products / Services Introduced <span class="text-rose-400">*</span>
+            </label>
+            <span class="text-[11px] text-slate-400">Add at least one item</span>
+          </div>
+
+          <div id="products-list" class="space-y-3">
+            <!-- Row 1 Default -->
+            <div class="product-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-amber-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                1
+              </span>
+              <input
+                type="text"
+                name="products[0][name]"
+                required
+                placeholder="Product / Service Name"
+                class="w-full sm:w-1/3 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              />
+              <input
+                type="text"
+                name="products[0][description]"
+                required
+                placeholder="Brief description of product, features, and target segment"
+                class="w-full sm:flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              />
+              <button
+                type="button"
+                class="remove-row-btn text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 p-2 rounded-lg text-xs transition-colors shrink-0 hidden"
+                title="Remove Item"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="add-product-btn"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+          >
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Add another product / service</span>
+          </button>
+        </div>
+
+        <!-- New Market Details -->
+        <div class="space-y-1.5 pt-2">
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            Details of New Market Entered <span class="text-rose-400">*</span>
+          </label>
+          <textarea
+            name="new_market_details"
+            required
+            rows="3"
+            placeholder="Describe the customer segment, industry, or geographic territory not previously served..."
+            class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+          ></textarea>
+        </div>
+
+        <!-- Evidence files upload -->
+        <div class="space-y-1.5 pt-2">
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            Supporting Evidence & Documents (Optional)
+          </label>
+          <div class="text-[11px] text-slate-400 mb-2">
+            Attach brief reports, product brochures, or images demonstrating diversification (PDF/JPG/PNG/WEBP, max 5MB each).
+          </div>
+          <input
+            type="file"
+            name="evidence_files[]"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
+            class="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 cursor-pointer"
+          />
+        </div>
+
+        <div class="flex justify-between pt-6 border-t border-slate-800">
+          <button
+            type="button"
+            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+          >
+            <span>Continue to Step 3</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 3: Revenue from Diversification -->
+      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="3">
+        <div>
+          <h2 class="text-xl font-bold text-white">3. Revenue from Diversification</h2>
+          <p class="text-slate-400 text-xs mt-1">All figures must be based on Audited Financial Statements.</p>
+        </div>
+
+        <div class="space-y-1.5 max-w-md">
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            Total Audited Company Revenue (Rs.) <span class="text-rose-400">*</span>
+          </label>
+          <input
+            type="text"
+            inputmode="decimal"
+            name="total_company_revenue"
+            id="total_company_revenue"
+            required
+            placeholder="e.g. 100,000,000"
+            class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+          />
+        </div>
+
+        <!-- Revenue Repeater -->
+        <div class="space-y-4 pt-4 border-t border-slate-800">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Diversified Business Activities <span class="text-rose-400">*</span>
+            </label>
+            <span class="text-[11px] text-slate-400">% calculated automatically</span>
+          </div>
+
+          <div id="revenue-list" class="space-y-3">
+            <!-- Row 1 Default -->
+            <div class="revenue-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-amber-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                1
+              </span>
+              <input
+                type="text"
+                name="revenue[0][activity]"
+                required
+                placeholder="Business Activity Name"
+                class="w-full sm:w-1/2 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              />
+              <input
+                type="text"
+                inputmode="decimal"
+                name="revenue[0][revenue]"
+                required
+                placeholder="Revenue (Rs.)"
+                class="rev-amount-input w-full sm:w-1/3 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              />
+              <div class="row-pct-badge font-mono text-xs font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-2 rounded-xl text-center min-w-[70px]">
+                0.00%
+              </div>
+              <button
+                type="button"
+                class="remove-row-btn text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 p-2 rounded-lg text-xs transition-colors shrink-0 hidden"
+                title="Remove Row"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="add-revenue-btn"
+            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+          >
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Add another business activity</span>
+          </button>
+        </div>
+
+        <!-- Live Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Diversification Revenue</div>
+            <div id="live-total-revenue" class="text-xl font-bold font-mono text-white mt-1">Rs. 0.00</div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Combined % of Total Revenue</div>
+            <div id="live-combined-percent" class="text-xl font-bold font-mono text-amber-400 mt-1">0.00%</div>
+          </div>
+        </div>
+
+        <div class="flex justify-between pt-6 border-t border-slate-800">
+          <button
+            type="button"
+            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+          >
+            <span>Continue to Step 4</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 4: Gross Profit Margin Improvement -->
+      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="4">
+        <div>
+          <h2 class="text-xl font-bold text-white">4. Gross Profit Margin Improvement</h2>
+          <p class="text-slate-400 text-xs mt-1">Select the verified margin outcome achieved via diversification.</p>
+        </div>
+
+        <div class="space-y-3" id="margin-options-group">
+          <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
+            <input
+              type="radio"
+              name="gross_profit_margin_option"
+              value="Improved by more than 5%"
+              required
+              class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
+            />
+            <span class="text-sm font-semibold text-white">Improved by more than 5%</span>
+          </label>
+
+          <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
+            <input
+              type="radio"
+              name="gross_profit_margin_option"
+              value="Improved by 3% to less than 5%"
+              required
+              class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
+            />
+            <span class="text-sm font-semibold text-white">Improved by 3% to less than 5%</span>
+          </label>
+
+          <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
+            <input
+              type="radio"
+              name="gross_profit_margin_option"
+              value="Improved by 1% to less than 3%"
+              required
+              class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
+            />
+            <span class="text-sm font-semibold text-white">Improved by 1% to less than 3%</span>
+          </label>
+
+          <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
+            <input
+              type="radio"
+              name="gross_profit_margin_option"
+              value="Improved by less than 1%"
+              required
+              class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
+            />
+            <span class="text-sm font-semibold text-white">Improved by less than 1%</span>
+          </label>
+
+          <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
+            <input
+              type="radio"
+              name="gross_profit_margin_option"
+              value="Declined compared to last year"
+              required
+              class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
+            />
+            <span class="text-sm font-semibold text-white">Declined compared to last year</span>
+          </label>
+        </div>
+
+        <div class="flex justify-between pt-6 border-t border-slate-800">
+          <button
+            type="button"
+            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+          >
+            <span>Continue to Step 5</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 5: Return on Investment (ROI) & Payback -->
+      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="5">
+        <div>
+          <h2 class="text-xl font-bold text-white">5. Return on Investment (ROI) & Payback</h2>
+          <p class="text-slate-400 text-xs mt-1">ROI and estimated payback period are calculated automatically.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Total Investment in Diversification (Rs.) <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              inputmode="decimal"
+              name="total_investment"
+              id="total_investment"
+              required
+              placeholder="e.g. 5,000,000"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            />
+            <span class="text-[11px] text-slate-400 block">Includes machinery, tech, R&D, and market launch.</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Operating Profit from Diversification (Rs.) <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              inputmode="decimal"
+              name="operating_profit"
+              id="operating_profit"
+              required
+              placeholder="e.g. 1,000,000"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            />
+            <span class="text-[11px] text-slate-400 block">Use annualized operating profit if newly launched.</span>
+          </div>
+        </div>
+
+        <!-- Metric Display Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-800">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Return on Investment (ROI)</div>
+            <div id="live-roi-display" class="text-3xl font-extrabold font-mono text-emerald-400 mt-2">0.00%</div>
+            <span class="text-[11px] text-slate-500 mt-1 block">(Operating Profit ÷ Investment) × 100</span>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estimated Payback Period</div>
+            <div id="live-payback-display" class="text-3xl font-extrabold font-mono text-blue-400 mt-2">—</div>
+            <span class="text-[11px] text-slate-500 mt-1 block">Investment ÷ Operating Profit (Years)</span>
+          </div>
+        </div>
+
+        <div class="flex justify-between pt-6 border-t border-slate-800">
+          <button
+            type="button"
+            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+          >
+            Back
+          </button>
+          <button
+            type="button"
+            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+          >
+            <span>Continue to Step 6</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 6: Declaration & Signature -->
+      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="6">
+        <div>
+          <h2 class="text-xl font-bold text-white">6. Declaration & Biometric Signature</h2>
+          <p class="text-slate-400 text-xs mt-1">Review legal declaration and sign before final statutory submission.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Authorized Signatory Name <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="declaration_name"
+              required
+              placeholder="e.g. Priyantha Jayasuriya"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Official Designation <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="declaration_designation"
+              required
+              placeholder="e.g. Chief Executive Officer"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            />
+          </div>
+
+          <div class="sm:col-span-2 space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Date of Declaration <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="date"
+              name="declaration_date"
+              id="declaration_date"
+              required
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Digital Signature -->
+        <div class="pt-4 border-t border-slate-800 space-y-2">
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+            Digital Biometric Signature <span class="text-rose-400">*</span>
+          </label>
+          <SignaturePad id="signature_data" name="signature_data" />
+        </div>
+
+        <!-- Affirmation Checkbox -->
+        <div class="pt-2">
+          <label class="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/30 cursor-pointer">
+            <input
+              type="checkbox"
+              name="declaration_confirmed"
+              value="true"
+              required
+              class="mt-1 w-4 h-4 rounded text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
+            />
+            <span class="text-xs text-slate-300 leading-relaxed">
+              <strong class="text-white block font-semibold mb-1">I/We confirm and certify the declaration above.</strong>
+              All information provided is true, accurate, and relates exclusively to verified New Products to New Markets diversification and strategically linked long-term capital investments for the 2025/26 evaluation period.
+            </span>
+          </label>
+        </div>
+
+        <div class="flex justify-between items-center pt-6 border-t border-slate-800">
+          <button
+            type="button"
+            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+          >
+            Back
+          </button>
+          <button
+            type="submit"
+            id="submit-app-btn"
+            class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-sm flex items-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all"
+          >
+            <span id="submit-btn-text">Submit Official Application</span>
+            <svg id="submit-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+          </button>
+        </div>
+      </section>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  // Full reactive client-side multi-step wizard controller
+  function initWizard() {
+    let currentStep = 1;
+    const totalSteps = 6;
+    const form = document.getElementById('award-form') as HTMLFormElement | null;
+    const errorBanner = document.getElementById('error-banner');
+    const errorMessage = document.getElementById('error-message');
+    const draftBanner = document.getElementById('draft-banner');
+    const clearDraftBtn = document.getElementById('clear-draft-btn');
+    const progressBar = document.getElementById('step-progress-bar');
+    const stepCounter = document.getElementById('step-counter');
+    const submitBtn = document.getElementById('submit-app-btn') as HTMLButtonElement | null;
+    const submitText = document.getElementById('submit-btn-text');
+    const submitSpinner = document.getElementById('submit-spinner');
+
+    if (!form) return;
+
+    // Set default date to today
+    const dateInput = document.getElementById('declaration_date') as HTMLInputElement | null;
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0]!;
+    }
+
+    // --- Strict Numeric Formatting & Input Keystroke Helpers ---
+    function formatWithCommas(val: string | number): string {
+      if (val === '' || val === null || val === undefined) return '';
+      const str = String(val);
+      const parts = str.split('.');
+      const intPart = parts[0]?.replace(/[^0-9]/g, '') || '';
+      const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return parts.length > 1 ? `${formattedInt}.${parts.slice(1).join('').replace(/[^0-9]/g, '')}` : formattedInt;
+    }
+
+    function parseNumber(val?: string | number): number {
+      if (val === '' || val === null || val === undefined) return 0;
+      const clean = String(val).replace(/,/g, '').trim();
+      const n = parseFloat(clean);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function formatNumberDisplay(n: number): string {
+      return n.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Attach strict numeric keystroke restrictions and comma formatting to an input
+    function attachNumericFilter(input: HTMLInputElement) {
+      if ((input as any)._numericAttached) return;
+      (input as any)._numericAttached = true;
+
+      // Keydown filter: allow digits, one period, navigation, shortcuts
+      input.addEventListener('keydown', (e: KeyboardEvent) => {
+        const allowedKeys = [
+          'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+          'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+          'Home', 'End'
+        ];
+        if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+          return;
+        }
+        // Digits 0-9
+        if (/^[0-9]$/.test(e.key)) {
+          return;
+        }
+        // Only one decimal point allowed (or allow if period is within selected text that will be replaced)
+        if (e.key === '.') {
+          const selStart = input.selectionStart || 0;
+          const selEnd = input.selectionEnd || 0;
+          const selectedText = input.value.substring(selStart, selEnd);
+          if (!input.value.includes('.') || selectedText.includes('.')) {
+            return;
+          }
+        }
+        // Block alphabets, spaces, symbols
+        e.preventDefault();
+      });
+
+      // On input: format with commas while preserving caret position
+      input.addEventListener('input', () => {
+        const orig = input.value;
+        const selStart = input.selectionStart || 0;
+
+        // Count numeric characters before cursor
+        let digitsBefore = 0;
+        for (let i = 0; i < selStart; i++) {
+          if (/[0-9.]/.test(orig[i]!)) digitsBefore++;
+        }
+
+        // Clean input: strip all non-digit and non-period characters, keep single period
+        const rawClean = orig.replace(/[^0-9.]/g, '');
+        const firstDot = rawClean.indexOf('.');
+        let sanitized = rawClean;
+        if (firstDot !== -1) {
+          sanitized = rawClean.slice(0, firstDot + 1) + rawClean.slice(firstDot + 1).replace(/\./g, '');
+        }
+
+        // Format with thousand commas
+        const formatted = formatWithCommas(sanitized);
+        input.value = formatted;
+
+        // Restore caret position based on digit count
+        let newPos = 0;
+        let digitsFound = 0;
+        for (let i = 0; i < formatted.length; i++) {
+          if (digitsFound >= digitsBefore) break;
+          if (/[0-9.]/.test(formatted[i]!)) digitsFound++;
+          newPos = i + 1;
+        }
+        input.setSelectionRange(newPos, newPos);
+
+        recalculateLive();
+        saveDraft();
+      });
+    }
+
+    // Attach to existing financial inputs
+    function setupAllNumericInputs() {
+      const inputs = [
+        document.getElementById('total_company_revenue') as HTMLInputElement | null,
+        document.getElementById('total_investment') as HTMLInputElement | null,
+        document.getElementById('operating_profit') as HTMLInputElement | null,
+        ...document.querySelectorAll('.rev-amount-input'),
+      ];
+      inputs.forEach(inp => {
+        if (inp && inp instanceof HTMLInputElement) {
+          attachNumericFilter(inp);
+        }
+      });
+    }
+
+    setupAllNumericInputs();
+
+    // Step navigation
+    function showStep(step: number) {
+      currentStep = step;
+      document.querySelectorAll('.wizard-step').forEach(el => {
+        const s = parseInt(el.getAttribute('data-step') || '0', 10);
+        if (s === step) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+
+      // If Step 6 became visible, explicitly trigger canvas resize & redraw
+      if (step === 6) {
+        if (typeof (window as any).resizeSignatureCanvas === 'function') {
+          (window as any).resizeSignatureCanvas();
+        }
+      }
+
+      // Update progress bar
+      if (progressBar) {
+        progressBar.style.width = `${(step / totalSteps) * 100}%`;
+      }
+      if (stepCounter) {
+        stepCounter.textContent = `Step ${step} of ${totalSteps}`;
+      }
+
+      // Update step labels
+      document.querySelectorAll('.step-lbl').forEach(el => {
+        const s = parseInt(el.getAttribute('data-step') || '0', 10);
+        if (s === step) {
+          el.className = 'step-lbl text-amber-400 font-bold';
+        } else if (s < step) {
+          el.className = 'step-lbl text-slate-300';
+        } else {
+          el.className = 'step-lbl text-slate-500';
+        }
+      });
+
+      // Hide error banner when switching steps
+      if (errorBanner) errorBanner.classList.add('hidden');
+      window.scrollTo({ top: 120, behavior: 'smooth' });
+    }
+
+    function showError(msg: string) {
+      if (errorMessage) errorMessage.textContent = msg;
+      if (errorBanner) errorBanner.classList.remove('hidden');
+      window.scrollTo({ top: 80, behavior: 'smooth' });
+    }
+
+    // Step validation rules
+    function validateStep(step: number): boolean {
+      if (step === 1) {
+        const companyName = (form?.elements.namedItem('company_name') as HTMLInputElement)?.value.trim();
+        const nature = (form?.elements.namedItem('nature_operations') as HTMLSelectElement)?.value;
+        const contact = (form?.elements.namedItem('contact_name_designation') as HTMLInputElement)?.value.trim();
+        const email = (form?.elements.namedItem('contact_email') as HTMLInputElement)?.value.trim();
+        const phone = (form?.elements.namedItem('contact_phone') as HTMLInputElement)?.value.trim();
+
+        if (!companyName) { showError('Company Name is required.'); return false; }
+        if (!nature) { showError('Please select the Nature of Operations.'); return false; }
+        if (!contact) { showError('Contact Person Name & Designation is required.'); return false; }
+        if (!email || !email.includes('@')) { showError('A valid Contact Email is required.'); return false; }
+        if (!phone) { showError('Telephone number is required.'); return false; }
+        return true;
+      }
+
+      if (step === 2) {
+        const newProducts = (form?.elements.namedItem('new_products_services') as HTMLInputElement)?.checked;
+        const newMarket = (form?.elements.namedItem('new_market_entered') as HTMLInputElement)?.checked;
+        if (!newProducts || !newMarket) {
+          showError('Both mandatory diversification conditions (New Products & New Market) must be confirmed.');
+          return false;
+        }
+
+        const productNames = form?.querySelectorAll('input[name*="[name]"]') as NodeListOf<HTMLInputElement>;
+        let hasProduct = false;
+        productNames.forEach(inp => {
+          if (inp.value.trim().length > 0) hasProduct = true;
+        });
+        if (!hasProduct) {
+          showError('Please list at least one diversified product or service.');
+          return false;
+        }
+
+        const marketDetails = (form?.elements.namedItem('new_market_details') as HTMLTextAreaElement)?.value.trim();
+        if (!marketDetails) {
+          showError('Please describe the new market entered.');
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 3) {
+        const totalRevInp = form?.elements.namedItem('total_company_revenue') as HTMLInputElement | null;
+        const totalRev = parseNumber(totalRevInp?.value);
+        if (totalRev <= 0) {
+          showError('Total Company Revenue (Audited) is required and must be greater than zero.');
+          totalRevInp?.focus();
+          return false;
+        }
+
+        const revRows = form?.querySelectorAll('.revenue-row') as NodeListOf<HTMLElement>;
+        let hasValidRow = false;
+        for (let i = 0; i < revRows.length; i++) {
+          const row = revRows[i]!;
+          const actInp = row.querySelector('input[name*="[activity]"]') as HTMLInputElement | null;
+          const amtInp = row.querySelector('.rev-amount-input') as HTMLInputElement | null;
+          const actVal = actInp?.value.trim() || '';
+          const amtVal = parseNumber(amtInp?.value);
+
+          if (!actVal && amtVal <= 0) {
+            continue;
+          }
+          if (!actVal) {
+            showError('Please enter the Business Activity description for row ' + (i + 1) + '.');
+            actInp?.focus();
+            return false;
+          }
+          if (amtVal <= 0) {
+            showError('Please enter a valid numeric revenue amount for row ' + (i + 1) + '.');
+            amtInp?.focus();
+            return false;
+          }
+          hasValidRow = true;
+        }
+
+        if (!hasValidRow) {
+          showError('Please add at least one diversified business activity with revenue.');
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 4) {
+        const option = form?.querySelector('input[name="gross_profit_margin_option"]:checked');
+        if (!option) {
+          showError('Please select a Gross Profit Margin Improvement category.');
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 5) {
+        const invInp = form?.elements.namedItem('total_investment') as HTMLInputElement | null;
+        const profitInp = form?.elements.namedItem('operating_profit') as HTMLInputElement | null;
+        const inv = parseNumber(invInp?.value);
+        const profit = parseNumber(profitInp?.value);
+
+        if (!invInp?.value.trim() || inv <= 0) {
+          showError('Total Investment in Diversification is required and must be greater than zero.');
+          invInp?.focus();
+          return false;
+        }
+        if (!profitInp?.value.trim() || profit < 0) {
+          showError('Operating Profit from Diversification is required (cannot be negative).');
+          profitInp?.focus();
+          return false;
+        }
+        return true;
+      }
+
+      if (step === 6) {
+        const declName = (form?.elements.namedItem('declaration_name') as HTMLInputElement)?.value.trim();
+        const declDesig = (form?.elements.namedItem('declaration_designation') as HTMLInputElement)?.value.trim();
+        const declDate = (form?.elements.namedItem('declaration_date') as HTMLInputElement)?.value.trim();
+        const confirmed = (form?.elements.namedItem('declaration_confirmed') as HTMLInputElement)?.checked;
+        const signature = (form?.elements.namedItem('signature_data') as HTMLInputElement)?.value;
+        const isBlank = typeof (window as any).isSignatureBlank === 'function' ? (window as any).isSignatureBlank() : (!signature || signature.length < 50);
+
+        if (!declName) { showError('Authorized Signatory Name is required.'); return false; }
+        if (!declDesig) { showError('Official Designation is required.'); return false; }
+        if (!declDate) { showError('Date of Declaration is required.'); return false; }
+        if (isBlank) {
+          showError('Digital biometric signature is required. Please sign inside the designated box.');
+          document.getElementById('sig-canvas')?.focus();
+          return false;
+        }
+        if (!confirmed) {
+          showError('Please confirm the legal declaration checkbox before submitting.');
+          return false;
+        }
+        return true;
+      }
+
+      return true;
+    }
+
+    // Live Calculations
+    function recalculateLive() {
+      // Step 3 Live Calculations
+      const totalRev = parseNumber((form?.elements.namedItem('total_company_revenue') as HTMLInputElement)?.value);
+      const revRows = form?.querySelectorAll('.revenue-row') as NodeListOf<HTMLElement>;
+      let divTotal = 0;
+
+      revRows.forEach(row => {
+        const amtInput = row.querySelector('.rev-amount-input') as HTMLInputElement | null;
+        const pctBadge = row.querySelector('.row-pct-badge') as HTMLElement | null;
+        const amt = parseNumber(amtInput?.value);
+        divTotal += amt;
+        const pct = totalRev > 0 ? (amt / totalRev) * 100 : 0;
+        if (pctBadge) pctBadge.textContent = `${pct.toFixed(2)}%`;
+      });
+
+      const liveTotalRev = document.getElementById('live-total-revenue');
+      const liveCombPct = document.getElementById('live-combined-percent');
+      if (liveTotalRev) liveTotalRev.textContent = `Rs. ${formatNumberDisplay(divTotal)}`;
+      if (liveCombPct) {
+        const combPct = totalRev > 0 ? (divTotal / totalRev) * 100 : 0;
+        liveCombPct.textContent = `${combPct.toFixed(2)}%`;
+      }
+
+      // Step 5 Live Calculations (ROI & Payback)
+      const inv = parseNumber((form?.elements.namedItem('total_investment') as HTMLInputElement)?.value);
+      const profit = parseNumber((form?.elements.namedItem('operating_profit') as HTMLInputElement)?.value);
+
+      const roiDisplay = document.getElementById('live-roi-display');
+      const paybackDisplay = document.getElementById('live-payback-display');
+
+      if (roiDisplay) {
+        const roi = inv > 0 ? (profit / inv) * 100 : 0;
+        roiDisplay.textContent = `${roi.toFixed(2)}%`;
+      }
+
+      if (paybackDisplay) {
+        if (profit > 0 && inv > 0) {
+          const payback = inv / profit;
+          paybackDisplay.textContent = `${payback.toFixed(2)} Years`;
+        } else {
+          paybackDisplay.textContent = '—';
+        }
+      }
+    }
+
+    // General input listener
+    form.addEventListener('input', () => {
+      recalculateLive();
+      saveDraft();
+    });
+
+    // Add/Remove Products Repeater
+    const addProductBtn = document.getElementById('add-product-btn');
+    const productsList = document.getElementById('products-list');
+    addProductBtn?.addEventListener('click', () => {
+      if (!productsList) return;
+      const count = productsList.querySelectorAll('.product-row').length;
+      const row = document.createElement('div');
+      row.className = 'product-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center animate-fade-in';
+      row.innerHTML = `
+        <span class="w-6 h-6 rounded-full bg-slate-800 text-amber-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+          ${count + 1}
+        </span>
+        <input
+          type="text"
+          name="products[${count}][name]"
+          required
+          placeholder="Product / Service Name"
+          class="w-full sm:w-1/3 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+        />
+        <input
+          type="text"
+          name="products[${count}][description]"
+          required
+          placeholder="Brief description of product, features, and target segment"
+          class="w-full sm:flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+        />
+        <button
+          type="button"
+          class="remove-row-btn text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 p-2 rounded-lg text-xs transition-colors shrink-0"
+          title="Remove Item"
+        >
+          ✕
+        </button>
+      `;
+      productsList.appendChild(row);
+      updateRemoveButtons(productsList, '.product-row');
+      saveDraft();
+    });
+
+    // Add/Remove Revenue Repeater
+    const addRevenueBtn = document.getElementById('add-revenue-btn');
+    const revenueList = document.getElementById('revenue-list');
+    addRevenueBtn?.addEventListener('click', () => {
+      if (!revenueList) return;
+      const count = revenueList.querySelectorAll('.revenue-row').length;
+      const row = document.createElement('div');
+      row.className = 'revenue-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center animate-fade-in';
+      row.innerHTML = `
+        <span class="w-6 h-6 rounded-full bg-slate-800 text-amber-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+          ${count + 1}
+        </span>
+        <input
+          type="text"
+          name="revenue[${count}][activity]"
+          required
+          placeholder="Business Activity Name"
+          class="w-full sm:w-1/2 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+        />
+        <input
+          type="text"
+          inputmode="decimal"
+          name="revenue[${count}][revenue]"
+          required
+          placeholder="Revenue (Rs.)"
+          class="rev-amount-input w-full sm:w-1/3 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+        />
+        <div class="row-pct-badge font-mono text-xs font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-2 rounded-xl text-center min-w-[70px]">
+          0.00%
+        </div>
+        <button
+          type="button"
+          class="remove-row-btn text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 p-2 rounded-lg text-xs transition-colors shrink-0"
+          title="Remove Row"
+        >
+          ✕
+        </button>
+      `;
+      revenueList.appendChild(row);
+      updateRemoveButtons(revenueList, '.revenue-row');
+
+      // Attach strict numeric filter to new input
+      const newAmtInp = row.querySelector('.rev-amount-input') as HTMLInputElement | null;
+      if (newAmtInp) attachNumericFilter(newAmtInp);
+
+      recalculateLive();
+      saveDraft();
+    });
+
+    // Delegate row removal
+    document.addEventListener('click', e => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('remove-row-btn')) {
+        const row = target.closest('.product-row, .revenue-row');
+        const container = row?.parentElement;
+        row?.remove();
+        if (container) {
+          updateRemoveButtons(container, container.id === 'products-list' ? '.product-row' : '.revenue-row');
+        }
+        recalculateLive();
+        saveDraft();
+      }
+    });
+
+    function updateRemoveButtons(container: HTMLElement, selector: string) {
+      const rows = container.querySelectorAll(selector);
+      rows.forEach((r, idx) => {
+        const numSpan = r.querySelector('span');
+        if (numSpan) numSpan.textContent = String(idx + 1);
+        const rmBtn = r.querySelector('.remove-row-btn');
+        if (rmBtn) {
+          if (rows.length > 1) {
+            rmBtn.classList.remove('hidden');
+          } else {
+            rmBtn.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    // Step button handlers
+    document.querySelectorAll('.next-step-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (validateStep(currentStep)) {
+          showStep(currentStep + 1);
+        }
+      });
+    });
+
+    document.querySelectorAll('.prev-step-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (currentStep > 1) {
+          showStep(currentStep - 1);
+        }
+      });
+    });
+
+    // LocalStorage Draft Management
+    const DRAFT_KEY = 'bdc_award_draft_2025';
+
+    function saveDraft() {
+      try {
+        const formData = new FormData(form);
+        const obj: Record<string, any> = {};
+        formData.forEach((val, key) => {
+          if (key === 'signature_data' || key.includes('files')) return;
+          obj[key] = val;
+        });
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(obj));
+      } catch {}
+    }
+
+    function restoreDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        let restoredCount = 0;
+
+        Object.keys(data).forEach(key => {
+          const el = form?.elements.namedItem(key);
+          if (el) {
+            if (el instanceof RadioNodeList) {
+              el.value = data[key];
+            } else if (el instanceof HTMLInputElement) {
+              if (el.type === 'checkbox') {
+                el.checked = data[key] === 'true' || data[key] === true;
+              } else {
+                // Format numeric inputs with commas upon restore
+                if (['total_company_revenue', 'total_investment', 'operating_profit'].includes(key) || key.includes('[revenue]')) {
+                  el.value = formatWithCommas(data[key]);
+                } else {
+                  el.value = data[key];
+                }
+              }
+            } else if (el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) {
+              el.value = data[key];
+            }
+            restoredCount++;
+          }
+        });
+
+        if (restoredCount > 0 && draftBanner) {
+          draftBanner.classList.remove('hidden');
+          setupAllNumericInputs();
+          recalculateLive();
+        }
+      } catch {}
+    }
+
+    clearDraftBtn?.addEventListener('click', () => {
+      localStorage.removeItem(DRAFT_KEY);
+      if (draftBanner) draftBanner.classList.add('hidden');
+      form.reset();
+      recalculateLive();
+    });
+
+    restoreDraft();
+
+    // Form Submission Handler
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      // Ensure signature canvas exports latest data before validating Step 6
+      const sigPad = document.getElementById('sig-canvas') as HTMLCanvasElement | null;
+      const sigInput = document.getElementById('signature_data') as HTMLInputElement | null;
+      if (sigPad && sigInput && typeof (window as any).isSignatureBlank === 'function' && !(window as any).isSignatureBlank()) {
+        sigInput.value = sigPad.toDataURL('image/png');
+      }
+
+      if (!validateStep(6)) {
+        return;
+      }
+
+      // Check file attachments payload limits
+      const fileInputs = form.querySelectorAll('input[type="file"]') as NodeListOf<HTMLInputElement>;
+      let totalFileSize = 0;
+      for (const fi of fileInputs) {
+        if (fi.files) {
+          for (let i = 0; i < fi.files.length; i++) {
+            const file = fi.files[i]!;
+            if (file.size > 5 * 1024 * 1024) {
+              showError(`File "${file.name}" exceeds the maximum allowed size of 5 MB.`);
+              return;
+            }
+            totalFileSize += file.size;
+          }
+        }
+      }
+      if (totalFileSize > 25 * 1024 * 1024) {
+        showError('Total uploaded files exceed the maximum allowed payload limit (25 MB).');
+        return;
+      }
+
+      // Enter loading state
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitText) submitText.textContent = 'Submitting & Generating Dossier...';
+      if (submitSpinner) submitSpinner.classList.remove('hidden');
+      if (errorBanner) errorBanner.classList.add('hidden');
+
+      function resetSubmitBtn() {
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.textContent = 'Submit Official Application';
+        if (submitSpinner) submitSpinner.classList.add('hidden');
+      }
+
+      try {
+        const formData = new FormData(form);
+
+        // Sanitize numeric fields: strip commas before sending payload to backend
+        ['total_company_revenue', 'total_investment', 'operating_profit'].forEach(k => {
+          const val = formData.get(k);
+          if (typeof val === 'string') {
+            formData.set(k, val.replace(/,/g, '').trim());
+          }
+        });
+
+        // Strip commas from repeater revenue rows
+        for (const [k, val] of Array.from(formData.entries())) {
+          if (k.startsWith('revenue[') && k.endsWith('][revenue]') && typeof val === 'string') {
+            formData.set(k, val.replace(/,/g, '').trim());
+          }
+        }
+
+        // Setup 60-second AbortController timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+        let res: Response;
+        try {
+          // Use relative endpoint to avoid cross-origin protocol/port issues
+          res = await fetch('/api/submit', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+          });
+        } catch (fetchErr: any) {
+          clearTimeout(timeoutId);
+          console.error('[Submit Network Exception]', fetchErr);
+          if (fetchErr?.name === 'AbortError') {
+            showError('Submission request timed out. Please check your network connection and file attachments.');
+          } else {
+            showError(fetchErr?.message ? `Network error: ${fetchErr.message}` : 'A network error occurred while submitting. Please check your connection.');
+          }
+          resetSubmitBtn();
+          return;
+        }
+        clearTimeout(timeoutId);
+
+        // Check response.ok before attempting response.json()
+        if (res.ok) {
+          let data: any = null;
+          try {
+            data = await res.json();
+          } catch (jsonErr) {
+            console.error('[JSON Parse Error on OK response]', jsonErr);
+            const rawText = await res.text().catch(() => '');
+            showError('Invalid response from server: ' + (rawText ? rawText.slice(0, 150) : 'Malformed JSON'));
+            resetSubmitBtn();
+            return;
+          }
+
+          if (data?.success) {
+            // Clear saved draft on successful submission
+            localStorage.removeItem(DRAFT_KEY);
+
+            // Store submission data in sessionStorage for success page
+            sessionStorage.setItem('submitted_reference', data.reference || '');
+            sessionStorage.setItem('submitted_email', data.email || '');
+            sessionStorage.setItem('submitted_download_url', data.downloadUrl || '');
+            sessionStorage.setItem('submitted_pdf_ready', data.pdfReady ? '1' : '0');
+            sessionStorage.setItem('submitted_email_sent', data.emailSent ? '1' : '0');
+
+            window.location.href = `/success?ref=${encodeURIComponent(data.reference)}`;
+          } else {
+            showError(data?.message || 'Submission failed. Please check your details.');
+            resetSubmitBtn();
+          }
+        } else {
+          // Server returned error (e.g. 422, 429, 500) or unformatted HTML/PHP fatal error
+          let errMsg = '';
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            try {
+              const errData = await res.json();
+              errMsg = errData?.message || (errData?.errors ? Object.values(errData.errors).flat().join(', ') : '');
+              if (errData?.field) {
+                const f = String(errData.field);
+                if (f.includes('company') || f.includes('contact') || f.includes('operations')) showStep(1);
+                else if (f.includes('product') || f.includes('market')) showStep(2);
+                else if (f.includes('revenue')) showStep(3);
+                else if (f.includes('gross') || f.includes('margin')) showStep(4);
+                else if (f.includes('investment') || f.includes('profit')) showStep(5);
+                else if (f.includes('declaration') || f.includes('signature')) showStep(6);
+              }
+            } catch {
+              errMsg = await res.text().catch(() => '');
+            }
+          } else {
+            errMsg = await res.text().catch(() => '');
+          }
+
+          if (!errMsg) {
+            errMsg = `Server error (Status: ${res.status} ${res.statusText || ''})`;
+          }
+          // Strip any HTML tags from error message
+          const cleanErrMsg = errMsg.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+          console.error('[Submission Server Error]', res.status, cleanErrMsg);
+          showError(cleanErrMsg.slice(0, 300) || `Server error (${res.status})`);
+          resetSubmitBtn();
+        }
+      } catch (err: any) {
+        console.error('[Submit Handler Error]', err);
+        showError(err?.message ? `Submission Error: ${err.message}` : 'An unexpected error occurred while submitting. Please check your details.');
+        resetSubmitBtn();
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWizard);
+  } else {
+    initWizard();
+  }
+</script>
+

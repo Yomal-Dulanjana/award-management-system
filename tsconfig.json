@@ -1,0 +1,13 @@
+{
+  "extends": "./node_modules/astro/tsconfigs/strictest.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "allowJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src", ".astro/types.d.ts"]
+}

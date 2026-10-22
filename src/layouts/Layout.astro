@@ -1,0 +1,113 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Best Diversified Company Award 2025/26",
+  description = "Official online portal for the Best Diversified Company Award 2025/26. Evaluate eligibility, complete guided application, and receive an executive verified PDF dossier.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="h-full bg-slate-50 text-slate-800 antialiased selection:bg-amber-500 selection:text-white">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="min-h-full flex flex-col font-sans bg-[#071329] text-slate-100">
+    <!-- Top Decorative Line -->
+    <div class="h-1.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600"></div>
+
+    <!-- Navigation Bar -->
+    <header class="border-b border-slate-800/80 bg-[#0b2043]/80 backdrop-blur-md sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3.5 group">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform duration-200">
+            <svg class="w-6 h-6 text-slate-950" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-wider font-semibold text-amber-400">Award Portal • 2025/26</div>
+            <div class="text-lg font-bold tracking-tight text-white group-hover:text-amber-200 transition-colors">Best Diversified Company</div>
+          </div>
+        </a>
+
+        <nav class="flex items-center gap-3 sm:gap-4">
+          <a
+            href="/"
+            class="text-sm font-medium text-slate-300 hover:text-white px-3 py-2 rounded-lg hover:bg-slate-800/60 transition-colors hidden sm:inline-block"
+          >
+            Guidelines
+          </a>
+          <a
+            href="/admin/login"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 text-xs sm:text-sm font-semibold border border-slate-700/80 hover:border-amber-500/40 shadow-sm transition-all duration-150"
+            title="Executive Admin Portal"
+          >
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            <span>Admin Portal</span>
+          </a>
+          <a
+            href="/apply"
+            class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-sm font-bold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150"
+          >
+            <span>Apply Now</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content Slot -->
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-[#071329] py-12 text-slate-400 text-sm">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">
+              BDC
+            </div>
+            <div>
+              <div class="font-semibold text-slate-200">Best Diversified Company Award 2025/26</div>
+              <div class="text-xs text-slate-500">Corporate Performance, Governance & Growth Recognition</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-6 text-xs text-slate-400">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              SSL 256-bit Encrypted
+            </span>
+            <span>•</span>
+            <span>Audited Statutory Verification</span>
+            <span>•</span>
+            <span>Official Portal</span>
+          </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-slate-800/80 text-center text-xs text-slate-600">
+          © {new Date().getFullYear()} Best Diversified Company Award Council. All rights reserved. Submissions are treated with strict confidentiality.
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
