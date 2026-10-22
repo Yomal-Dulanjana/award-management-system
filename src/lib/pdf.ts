@@ -419,6 +419,18 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   doc.text('Criteria 3 - Revenue from Diversification', LM, curY);
   curY += 14;
 
+  // Total Company Revenue Row (Standard key-value styling matching Section 1)
+  const totRevRowH = 18;
+  drawTableOutline(LM, curY, contentW, totRevRowH);
+  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, curY).lineTo(LM + col1W, curY + totRevRowH).stroke();
+
+  doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text('Total Company Revenue', LM + 6, curY + 5);
+
+  doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+  doc.text(`Rs ${fmtNumber(bundle.totalCompanyRevenue)}`, LM + col1W + 6, curY + 5, { width: col2W - 12, height: totRevRowH - 4, ellipsis: true });
+  curY += totRevRowH + 12;
+
   // Revenue Table Header
   const rCol1W = 35;
   const rCol2W = 210;
