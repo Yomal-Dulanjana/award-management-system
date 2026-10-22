@@ -1,7 +1,11 @@
 // GET /api/download — HMAC token-verified PDF download endpoint
 import type { APIRoute } from 'astro';
 import { verifyDownloadToken } from '@/lib/security';
-import { pdfStoragePath } from '@/lib/pdf';
+import { pdfStoragePath, generatePdf } from '@/lib/pdf';
+import { isAllowedStoragePath } from '@/lib/storage';
+import { db, initDb } from '@/db';
+import { applications } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
@@ -25,12 +29,58 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  const filePath = pdfStoragePath(ref);
+  let filePath = pdfStoragePath(ref);
+  if (!existsSync(filePath)) {
+    // In serverless environments, the container /tmp may be empty.
+    // Seamlessly regenerate from persisted application record in database.
+    try {
+      await initDb();
+      const records = await db.select().from(applications).where(eq(applications.reference, ref)).limit(1);
+      const app = records[0];
+      if (app && app.data_json) {
+        const data = app.data_json as any;
+        const pdfResult = await generatePdf({
+          reference: ref,
+          companyName: data.company_name,
+          financialYear: data.financial_year,
+          natureOperations: data.nature_operations,
+          contactName: data.contact_name_designation,
+          contactEmail: data.contact_email,
+          contactPhone: data.contact_phone,
+          newProductsServices: data.new_products_services,
+          newMarketEntered: data.new_market_entered,
+          newMarketDetails: data.new_market_details,
+          products: data.products,
+          grossProfitMarginOption: data.gross_profit_margin_option,
+          totalCompanyRevenue: data.total_company_revenue,
+          revenueRows: data.metrics?.revenueRows || [],
+          diversificationTotal: data.metrics?.diversificationTotal || 0,
+          combinedPercent: data.metrics?.combinedPercent || 0,
+          totalInvestment: data.total_investment,
+          operatingProfit: data.operating_profit,
+          roi: data.metrics?.roi || 0,
+          payback: data.metrics?.payback,
+          declarationName: data.declaration_name,
+          declarationDesignation: data.declaration_designation,
+          declarationDate: data.declaration_date,
+          signatureDataUri: data.signature_data,
+        });
+        filePath = pdfResult.filePath;
+      }
+    } catch (e) {
+      console.warn('[Download On-Demand Gen Warning]', ref, e);
+    }
+  }
+
   if (!existsSync(filePath)) {
     return new Response('Application PDF file not found or has been cleaned up.', {
       status: 404,
       headers: { 'Content-Type': 'text/plain' },
     });
+  }
+
+  if (!isAllowedStoragePath(filePath)) {
+    return new Response('Forbidden: Invalid storage path.', { status: 403 });
   }
 
   try {

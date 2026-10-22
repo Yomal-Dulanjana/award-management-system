@@ -5,3 +5,4 @@ storage/temp/
 *.pdf
 .env
 *.local
+.vercel/

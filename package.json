@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
-    "dev": "node --env-file=.env ./node_modules/astro/astro.js dev",
+    "dev": "node --env-file=.env ./node_modules/astro/bin/astro.mjs dev",
     "build": "astro build",
     "preview": "astro preview",
     "test": "node test_e2e.mjs",

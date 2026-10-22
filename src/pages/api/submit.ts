@@ -10,6 +10,7 @@ import { sendApplicantConfirmation, sendAdminNotification } from '@/lib/mailer';
 import type { PdfBundle } from '@/lib/pdf';
 import { db, initDb } from '@/db';
 import { applications, applicationAttachments } from '@/db/schema';
+import { getUploadsDir, ensureDir } from '@/lib/storage';
 
 export const POST: APIRoute = async ({ request }) => {
   const json = (status: number, body: Record<string, unknown>) =>
@@ -186,9 +187,9 @@ export const POST: APIRoute = async ({ request }) => {
   const baseUrl   = process.env['APP_URL'] ?? 'http://localhost:4321';
   const downloadUrl = buildDownloadUrl(reference, baseUrl);
 
-  // Securely persist uploaded evidence files to disk under storage/uploads/[reference]/[unique_name]
-  const uploadsDir = path.resolve(process.cwd(), 'storage', 'uploads', reference);
-  await fs.mkdir(uploadsDir, { recursive: true });
+  // Securely persist uploaded evidence files to disk under dynamic uploads directory (/tmp/uploads on Vercel)
+  const uploadsDir = getUploadsDir(reference);
+  await ensureDir(uploadsDir);
 
   const savedEvidenceAttachments: Array<{
     originalName: string;

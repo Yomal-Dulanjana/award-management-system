@@ -3,6 +3,7 @@ import { PDFDocument, rgb, StandardFonts, PageSizes } from 'pdf-lib';
 import { writeFile, mkdir, chmod, readdir, stat, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { getTempDir, ensureDir, isServerless } from './storage';
 
 // Executive Corporate Color Palette
 const NAVY       = rgb(0.059, 0.090, 0.165); // #0f172a (Deep Slate/Navy)
@@ -72,6 +73,9 @@ function clamp(text: string, font: any, size: number, maxWidth: number): string 
 
 // Resolve active temporary storage directory across development and production
 function resolveTempStorageDir(): string {
+  if (isServerless()) {
+    return getTempDir();
+  }
   const cwd = process.cwd();
   if (existsSync(join(cwd, 'storage', 'temp'))) {
     return join(cwd, 'storage', 'temp');
@@ -375,7 +379,8 @@ export async function generatePdf(bundle: PdfBundle): Promise<GeneratePdfResult>
       y: y - 12, font: helvetica, size: 7.5, color: SLATE_DARK,
     });
 
-    const pctStr = r.percent.toFixed(2) + '%';
+    const pctVal = typeof r.percent === 'number' ? r.percent : (bundle.totalCompanyRevenue > 0 ? (r.revenue / bundle.totalCompanyRevenue * 100) : 0);
+    const pctStr = pctVal.toFixed(2) + '%';
     page2.drawText(pctStr, {
       x: RM - helveticaBold.widthOfTextAtSize(pctStr, 7.5) - 8,
       y: y - 12, font: helveticaBold, size: 7.5, color: NAVY,
@@ -586,10 +591,10 @@ export async function generatePdf(bundle: PdfBundle): Promise<GeneratePdfResult>
   const safeRef = bundle.reference.replace(/[^A-Za-z0-9_-]/g, '') || 'submission';
   const storageTempDir = resolveTempStorageDir();
 
-  // Ensure directories exist
+  // Ensure directories exist safely
   const refSubDir = join(storageTempDir, safeRef);
-  if (!existsSync(refSubDir)) await mkdir(refSubDir, { recursive: true });
-  if (!existsSync(storageTempDir)) await mkdir(storageTempDir, { recursive: true });
+  await ensureDir(storageTempDir);
+  await ensureDir(refSubDir);
 
   // Write to both storage/temp/[reference].pdf and storage/temp/[reference]/[reference].pdf
   const primaryFilePath = join(storageTempDir, `${safeRef}.pdf`);
@@ -617,11 +622,18 @@ export async function generatePdf(bundle: PdfBundle): Promise<GeneratePdfResult>
 export function pdfStoragePath(reference: string): string {
   const safeRef = reference.replace(/[^A-Za-z0-9_-]/g, '') || 'submission';
   const storageTempDir = resolveTempStorageDir();
-  const p1 = join(storageTempDir, `${safeRef}.pdf`);
-  if (existsSync(p1)) return p1;
-  const p2 = join(storageTempDir, safeRef, `${safeRef}.pdf`);
-  if (existsSync(p2)) return p2;
-  return p1;
+  const candidates = [
+    join(storageTempDir, `${safeRef}.pdf`),
+    join(storageTempDir, safeRef, `${safeRef}.pdf`),
+    join('/tmp', 'temp', `${safeRef}.pdf`),
+    join('/tmp', 'temp', safeRef, `${safeRef}.pdf`),
+    join(process.cwd(), 'storage', 'temp', `${safeRef}.pdf`),
+    join(process.cwd(), 'storage', 'temp', safeRef, `${safeRef}.pdf`),
+  ];
+  for (const c of candidates) {
+    if (existsSync(c)) return c;
+  }
+  return join(storageTempDir, `${safeRef}.pdf`);
 }
 
 // Garbage collect temp PDFs older than 24 hours

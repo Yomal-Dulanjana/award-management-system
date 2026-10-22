@@ -2,10 +2,13 @@
 import type { APIRoute } from 'astro';
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { db, initDb } from '@/db';
 import { applications, applicationAttachments } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { verifySessionToken } from '@/lib/auth';
+import { isAllowedStoragePath, getUploadsDir } from '@/lib/storage';
+import { pdfStoragePath, generatePdf } from '@/lib/pdf';
 import JSZip from 'jszip';
 
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -44,17 +47,50 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     return new Response('Not Found: Application not found.', { status: 404 });
   }
 
-  const storageRoot = path.resolve(process.cwd(), 'storage');
-
   // MODE 1: Download official compiled PDF
   if (typeParam === 'pdf') {
-    let pdfPath = app.pdf_path;
-    if (!pdfPath || !pdfPath.endsWith('.pdf')) {
-      pdfPath = path.join(storageRoot, 'temp', `${ref}.pdf`);
+    let resolvedPdf = app.pdf_path ? path.resolve(app.pdf_path) : '';
+    if (!resolvedPdf || !existsSync(resolvedPdf)) {
+      resolvedPdf = path.resolve(pdfStoragePath(ref));
     }
 
-    const resolvedPdf = path.resolve(pdfPath);
-    if (!resolvedPdf.startsWith(storageRoot)) {
+    // If PDF not on disk (e.g. serverless instance recycling), attempt on-demand compilation
+    if (!existsSync(resolvedPdf) && app.data_json) {
+      try {
+        const data = app.data_json as any;
+        const pdfResult = await generatePdf({
+          reference: ref,
+          companyName: data.company_name,
+          financialYear: data.financial_year,
+          natureOperations: data.nature_operations,
+          contactName: data.contact_name_designation,
+          contactEmail: data.contact_email,
+          contactPhone: data.contact_phone,
+          newProductsServices: data.new_products_services,
+          newMarketEntered: data.new_market_entered,
+          newMarketDetails: data.new_market_details,
+          products: data.products,
+          grossProfitMarginOption: data.gross_profit_margin_option,
+          totalCompanyRevenue: data.total_company_revenue,
+          revenueRows: data.metrics?.revenueRows || [],
+          diversificationTotal: data.metrics?.diversificationTotal || 0,
+          combinedPercent: data.metrics?.combinedPercent || 0,
+          totalInvestment: data.total_investment,
+          operatingProfit: data.operating_profit,
+          roi: data.metrics?.roi || 0,
+          payback: data.metrics?.payback,
+          declarationName: data.declaration_name,
+          declarationDesignation: data.declaration_designation,
+          declarationDate: data.declaration_date,
+          signatureDataUri: data.signature_data,
+        });
+        resolvedPdf = path.resolve(pdfResult.filePath);
+      } catch (genErr) {
+        console.error('[Admin Download On-Demand Gen Error]', ref, genErr);
+      }
+    }
+
+    if (!isAllowedStoragePath(resolvedPdf)) {
       return new Response('Forbidden: Path traversal detected.', { status: 403 });
     }
 
@@ -84,10 +120,43 @@ export const GET: APIRoute = async ({ request, cookies }) => {
 
     const zip = new JSZip();
 
-    // Include compiled PDF if present
+    // Include compiled PDF if present or can be regenerated
     try {
-      const resolvedPdf = path.resolve(app.pdf_path);
-      if (resolvedPdf.startsWith(storageRoot)) {
+      let resolvedPdf = app.pdf_path ? path.resolve(app.pdf_path) : '';
+      if (!resolvedPdf || !existsSync(resolvedPdf)) {
+        resolvedPdf = path.resolve(pdfStoragePath(ref));
+      }
+      if (!existsSync(resolvedPdf) && app.data_json) {
+        const data = app.data_json as any;
+        const pdfResult = await generatePdf({
+          reference: ref,
+          companyName: data.company_name,
+          financialYear: data.financial_year,
+          natureOperations: data.nature_operations,
+          contactName: data.contact_name_designation,
+          contactEmail: data.contact_email,
+          contactPhone: data.contact_phone,
+          newProductsServices: data.new_products_services,
+          newMarketEntered: data.new_market_entered,
+          newMarketDetails: data.new_market_details,
+          products: data.products,
+          grossProfitMarginOption: data.gross_profit_margin_option,
+          totalCompanyRevenue: data.total_company_revenue,
+          revenueRows: data.metrics?.revenueRows || [],
+          diversificationTotal: data.metrics?.diversificationTotal || 0,
+          combinedPercent: data.metrics?.combinedPercent || 0,
+          totalInvestment: data.total_investment,
+          operatingProfit: data.operating_profit,
+          roi: data.metrics?.roi || 0,
+          payback: data.metrics?.payback,
+          declarationName: data.declaration_name,
+          declarationDesignation: data.declaration_designation,
+          declarationDate: data.declaration_date,
+          signatureDataUri: data.signature_data,
+        });
+        resolvedPdf = path.resolve(pdfResult.filePath);
+      }
+      if (isAllowedStoragePath(resolvedPdf) && existsSync(resolvedPdf)) {
         const pdfData = await fs.readFile(resolvedPdf);
         zip.file(`${ref}_Official_Application.pdf`, pdfData);
       }
@@ -99,8 +168,21 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     let addedCount = 0;
     for (const att of attachments) {
       try {
-        const resolvedPath = path.resolve(att.file_path);
-        if (resolvedPath.startsWith(storageRoot)) {
+        let resolvedPath = path.resolve(att.file_path);
+        if (!existsSync(resolvedPath)) {
+          const altPaths = [
+            path.join(getUploadsDir(ref), att.stored_filename),
+            path.join('/tmp', 'uploads', ref, att.stored_filename),
+            path.resolve(process.cwd(), 'storage', 'uploads', ref, att.stored_filename),
+          ];
+          for (const alt of altPaths) {
+            if (existsSync(alt)) {
+              resolvedPath = path.resolve(alt);
+              break;
+            }
+          }
+        }
+        if (isAllowedStoragePath(resolvedPath) && existsSync(resolvedPath)) {
           const fileData = await fs.readFile(resolvedPath);
           zip.file(`evidence/${att.original_filename}`, fileData);
           addedCount++;
@@ -152,8 +234,22 @@ export const GET: APIRoute = async ({ request, cookies }) => {
       return new Response('Not Found: Attachment not associated with this application.', { status: 404 });
     }
 
-    const resolvedFilePath = path.resolve(att.file_path);
-    if (!resolvedFilePath.startsWith(storageRoot)) {
+    let resolvedFilePath = path.resolve(att.file_path);
+    if (!existsSync(resolvedFilePath)) {
+      const altPaths = [
+        path.join(getUploadsDir(ref), att.stored_filename),
+        path.join('/tmp', 'uploads', ref, att.stored_filename),
+        path.resolve(process.cwd(), 'storage', 'uploads', ref, att.stored_filename),
+      ];
+      for (const alt of altPaths) {
+        if (existsSync(alt)) {
+          resolvedFilePath = path.resolve(alt);
+          break;
+        }
+      }
+    }
+
+    if (!isAllowedStoragePath(resolvedFilePath)) {
       return new Response('Forbidden: Path traversal detected.', { status: 403 });
     }
 
@@ -177,3 +273,4 @@ export const GET: APIRoute = async ({ request, cookies }) => {
 
   return new Response('Bad Request: Specify ?type=pdf, ?type=zip, or ?fileId=...', { status: 400 });
 };
+
