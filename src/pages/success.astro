@@ -1,10 +1,11 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import { buildDownloadUrl } from '@/lib/security';
+import { getBaseUrl } from '@/lib/url';
 
 // Server-side reference resolution if available via query parameter
 const refParam = Astro.url.searchParams.get('ref') ?? '';
-const baseUrl = process.env['APP_URL'] ?? 'http://localhost:4321';
+const baseUrl = getBaseUrl(Astro.request);
 const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : '';
 ---
 

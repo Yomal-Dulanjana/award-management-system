@@ -25,11 +25,15 @@ export function verifyDownloadToken(reference: string, ts: number, token: string
   return diff === 0;
 }
 
+export { getBaseUrl } from './url';
+import { getBaseUrl } from './url';
+
 // Build full public download URL with embedded signed token
-export function buildDownloadUrl(reference: string, baseUrl: string): string {
+export function buildDownloadUrl(reference: string, baseUrl?: string): string {
   const ts = Math.floor(Date.now() / 1000);
   const token = generateDownloadToken(reference, ts);
-  return `${baseUrl}/api/download?ref=${encodeURIComponent(reference)}&ts=${ts}&token=${token}`;
+  const cleanBase = (baseUrl || getBaseUrl()).replace(/\/+$/, '');
+  return `${cleanBase}/api/download?ref=${encodeURIComponent(reference)}&ts=${ts}&token=${token}`;
 }
 
 // Sanitize user input — strips script/event attributes to prevent stored XSS

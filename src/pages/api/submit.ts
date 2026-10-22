@@ -4,7 +4,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ApplicationSchema } from '@/lib/validation';
 import { recalculate, generateReference } from '@/lib/calculations';
-import { sanitizeText, checkRateLimit, buildDownloadUrl, secureHex } from '@/lib/security';
+import { sanitizeText, checkRateLimit, buildDownloadUrl, secureHex, getBaseUrl } from '@/lib/security';
 import { generatePdf, gcTempStorage } from '@/lib/pdf';
 import { sendApplicantConfirmation, sendAdminNotification } from '@/lib/mailer';
 import type { PdfBundle } from '@/lib/pdf';
@@ -184,7 +184,7 @@ export const POST: APIRoute = async ({ request }) => {
   });
 
   const reference = generateReference();
-  const baseUrl   = process.env['APP_URL'] ?? 'http://localhost:4321';
+  const baseUrl   = getBaseUrl(request);
   const downloadUrl = buildDownloadUrl(reference, baseUrl);
 
   // Securely persist uploaded evidence files to disk under dynamic uploads directory (/tmp/uploads on Vercel)
@@ -319,7 +319,7 @@ export const POST: APIRoute = async ({ request }) => {
           contactEmail: data.contact_email, contactName: data.contact_name_designation,
           roi: metrics.roi, payback: metrics.payback,
           diversificationTotal: metrics.diversificationTotal, combinedPercent: metrics.combinedPercent,
-          downloadUrl },
+          downloadUrl, baseUrl },
         pdfAttachment,
       );
       emailSent = true;
@@ -328,12 +328,13 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     try {
+      const adminDetailUrl = `${baseUrl}/admin/applications/${reference}`;
       await sendAdminNotification(
         { reference, companyName: data.company_name, financialYear: data.financial_year,
           contactEmail: data.contact_email, contactName: data.contact_name_designation,
           roi: metrics.roi, payback: metrics.payback,
           diversificationTotal: metrics.diversificationTotal, combinedPercent: metrics.combinedPercent,
-          downloadUrl },
+          downloadUrl, baseUrl, adminDetailUrl },
         pdfAttachment,
         savedEvidenceAttachments.map(a => ({
           originalName: a.originalName,

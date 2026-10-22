@@ -2,6 +2,7 @@
 // Gmail, cPanel Webmail, Zimbra, Office 365, and Zoho Mail.
 import nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer/index.js';
+import { getBaseUrl } from './url';
 
 export interface ApplicationBundle {
   reference: string;
@@ -14,6 +15,8 @@ export interface ApplicationBundle {
   diversificationTotal: number;
   combinedPercent: number;
   downloadUrl: string;
+  baseUrl?: string;
+  adminDetailUrl?: string;
 }
 
 // Build Nodemailer transporter from .env SMTP variables
@@ -147,8 +150,8 @@ export async function sendAdminNotification(
   const appName = process.env['APP_NAME'] ?? 'Best Diversified Company Award';
   const fromName = process.env['MAIL_FROM_NAME'] ?? appName;
   const fromAddr = process.env['MAIL_FROM_ADDRESS'] ?? 'no-reply@example.com';
-  const baseUrl = process.env['APP_URL'] ?? 'http://localhost:4321';
-  const adminDetailUrl = `${baseUrl}/admin/applications/${bundle.reference}`;
+  const baseUrl = bundle.baseUrl || getBaseUrl();
+  const adminDetailUrl = bundle.adminDetailUrl || `${baseUrl}/admin/applications/${bundle.reference}`;
 
   // Calculate PDF payload size
   let pdfSizeBytes = 0;
