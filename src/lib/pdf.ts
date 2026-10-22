@@ -6,17 +6,17 @@ import path from 'node:path';
 import { isServerless, ensureDir } from './storage';
 
 // Corporate Color Palette (matching reference images)
-const COLOR_NAVY_HEADER   = '#0f2347'; // Deep Navy Header background
+const COLOR_NAVY_HEADER = '#0f2347'; // Deep Navy Header background
 const COLOR_NAVY_TABLE_TH = '#1e3a5f'; // Navy Table Header
-const COLOR_TEXT_NAVY     = '#0f2347'; // Dark Navy Headings
-const COLOR_TEXT_BODY     = '#1e293b'; // Slate dark body text
-const COLOR_AMBER         = '#d97706'; // Left accent bar on section headers
-const COLOR_GOLD_REF      = '#f59e0b'; // Gold / amber for Reference code
-const COLOR_SECTION_BG    = '#f1f5f9'; // Light slate bar background
-const COLOR_BORDER        = '#cbd5e1'; // Light border divider lines
-const COLOR_MUTED         = '#94a3b8'; // Footer text color
-const COLOR_DISCLAIMER    = '#475569'; // Muted dark slate disclaimer text
-const COLOR_WHITE         = '#ffffff';
+const COLOR_TEXT_NAVY = '#0f2347'; // Dark Navy Headings
+const COLOR_TEXT_BODY = '#1e293b'; // Slate dark body text
+const COLOR_AMBER = '#d97706'; // Left accent bar on section headers
+const COLOR_GOLD_REF = '#f59e0b'; // Gold / amber for Reference code
+const COLOR_SECTION_BG = '#f1f5f9'; // Light slate bar background
+const COLOR_BORDER = '#cbd5e1'; // Light border divider lines
+const COLOR_MUTED = '#94a3b8'; // Footer text color
+const COLOR_DISCLAIMER = '#475569'; // Muted dark slate disclaimer text
+const COLOR_WHITE = '#ffffff';
 
 export interface PdfBundle {
   reference: string;
@@ -173,13 +173,13 @@ async function resolveSignatureBuffer(bundle: PdfBundle): Promise<Buffer | null>
   const candidateDirs = runningOnVercel
     ? ['/tmp/uploads', `/tmp/uploads/${safeRef}`, '/tmp']
     : [
-        path.resolve(process.cwd(), 'storage', 'uploads'),
-        path.resolve(process.cwd(), 'storage', 'uploads', safeRef),
-        path.resolve(process.cwd(), 'astro-award', 'storage', 'uploads'),
-        path.resolve(process.cwd(), 'astro-award', 'storage', 'uploads', safeRef),
-        path.resolve(process.cwd(), 'storage', 'temp'),
-        path.resolve('/tmp', 'uploads'),
-      ];
+      path.resolve(process.cwd(), 'storage', 'uploads'),
+      path.resolve(process.cwd(), 'storage', 'uploads', safeRef),
+      path.resolve(process.cwd(), 'astro-award', 'storage', 'uploads'),
+      path.resolve(process.cwd(), 'astro-award', 'storage', 'uploads', safeRef),
+      path.resolve(process.cwd(), 'storage', 'temp'),
+      path.resolve('/tmp', 'uploads'),
+    ];
 
   const candidatePaths = [
     trimmed,
@@ -252,44 +252,43 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   // =========================================================================
   doc.addPage({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
 
-  // Top Navy Banner
-  const headY = 38;
-  const headH = 76;
-  doc.rect(LM, headY, contentW, headH).fill(COLOR_NAVY_HEADER);
+  // Top Full-Width Navy Banner (Edge-to-edge from the very top of the page)
+  const headH = 96;
+  doc.rect(0, 0, doc.page.width, headH).fill(COLOR_NAVY_HEADER);
 
-  // Title inside banner
-  doc.font('Helvetica-Bold').fontSize(15).fillColor(COLOR_WHITE);
-  doc.text('BEST DIVERSIFIED COMPANY AWARD 2025/26', LM + 12, headY + 12);
+  // Title inside banner aligned with LM
+  doc.font('Helvetica-Bold').fontSize(15.5).fillColor(COLOR_WHITE);
+  doc.text('BEST DIVERSIFIED COMPANY AWARD 2025/26', LM, 26);
 
   // Subtitle
   const timestampStr = formatSubmissionTimestamp(bundle.submissionDate);
-  doc.font('Helvetica').fontSize(7.5).fillColor('#cbd5e1');
-  doc.text(`Application Submission - Generated ${timestampStr}`, LM + 12, headY + 34);
+  doc.font('Helvetica').fontSize(7.8).fillColor('#cbd5e1');
+  doc.text(`Application Submission - Generated ${timestampStr}`, LM, 48);
 
   // Reference Line
   const refText = `Reference: ${bundle.reference}`;
   doc.font('Helvetica-Bold').fontSize(9).fillColor(COLOR_GOLD_REF);
-  doc.text(refText, LM + 12, headY + 49);
+  doc.text(refText, LM, 65);
 
   // Solid gold underline directly beneath Reference text
   const refTextW = doc.widthOfString(refText);
   doc.lineWidth(1.5).strokeColor(COLOR_GOLD_REF);
-  doc.moveTo(LM + 12, headY + 62).lineTo(LM + 12 + refTextW, headY + 62).stroke();
+  doc.moveTo(LM, 78).lineTo(LM + refTextW, 78).stroke();
 
-  let curY = headY + headH + 20;
+  let curY = headH + 22;
 
   // Section 1 - Company Details
   curY = drawSectionBar(curY, 'Section 1 - Company Details');
   curY += 8;
 
-  // Table 1: Company details (5 rows)
-  const contactContact = [bundle.contactEmail, bundle.contactPhone].filter(Boolean).join(' / ');
+  // Table 1: Company details (6 distinct rows)
   const sec1Rows = [
     ['Company Name', bundle.companyName || 'N/A'],
     ['Financial Year Covered', bundle.financialYear || '2025/26'],
     ['Nature of Operations', bundle.natureOperations || 'N/A'],
     ['Contact Person', bundle.contactName || 'N/A'],
-    ['Email / Telephone', contactContact || 'N/A']
+    ['Email Address', bundle.contactEmail || 'N/A'],
+    ['Telephone', bundle.contactPhone || 'N/A']
   ];
 
   const col1W = 145;
@@ -389,7 +388,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
 
   // Supporting Details Subheading
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
-  doc.text('Supporting Details', LM, curY);
+  doc.text('Details of New Market Entered', LM, curY);
   curY += 12;
 
   // Supporting Details Table (2 rows)
@@ -646,7 +645,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
 
   await ensureDir(targetDir);
   await writeFile(finalFilePath, pdfBuffer);
-  await chmod(finalFilePath, 0o640).catch(() => {});
+  await chmod(finalFilePath, 0o640).catch(() => { });
 
   const result: GeneratePdfResult = {
     filePath: finalFilePath,
