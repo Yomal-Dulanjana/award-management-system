@@ -4,6 +4,9 @@ import { db, initDb } from '@/db';
 import { admins } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyPassword, createSessionToken, verifyCsrfToken } from '@/lib/auth';
+import { getClientIp, checkRateLimit } from '@/lib/security';
+
+export const prerender = false;
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const json = (status: number, body: Record<string, unknown>) =>
@@ -11,6 +14,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       status,
       headers: { 'Content-Type': 'application/json' },
     });
+
+  // Rate limiting against brute-force attacks (10 attempts per minute per IP)
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`admin_login:${ip}`, 10, 60)) {
+    return json(429, {
+      success: false,
+      message: 'Too many login attempts. For security reasons, please wait a minute before retrying.',
+    });
+  }
 
   let email = '';
   let password = '';

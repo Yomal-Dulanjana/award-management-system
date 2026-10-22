@@ -12,6 +12,11 @@ import { db, initDb } from '@/db';
 import { applications, applicationAttachments } from '@/db/schema';
 import { getUploadsDir, ensureDir } from '@/lib/storage';
 
+import { validateUploadedFile } from '@/lib/fileSecurity';
+import { getClientIp } from '@/lib/security';
+
+export const prerender = false;
+
 export const POST: APIRoute = async ({ request }) => {
   const json = (status: number, body: Record<string, unknown>) =>
     new Response(JSON.stringify(body), {
@@ -20,16 +25,16 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
   // Resolve client IP for rate limiting
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    request.headers.get('x-real-ip') ??
-    '0.0.0.0';
+  const ip = getClientIp(request);
 
-  // Rolling submission per hour rate limit (lenient in development mode)
+  // Strict rate limit: 5 requests per minute per IP for submissions
   const isDev = process.env['APP_ENV'] === 'development';
   const maxSubmissions = isDev ? 100 : 5;
-  if (!checkRateLimit(ip, maxSubmissions, 3600)) {
-    return json(429, { success: false, message: 'Too many submissions. Please wait and try again later.' });
+  if (!checkRateLimit(`submit:${ip}`, maxSubmissions, 60)) {
+    return json(429, {
+      success: false,
+      message: 'Rate limit exceeded: A maximum of 5 submissions per minute per IP address is permitted. Please wait and try again.',
+    });
   }
 
   // Parse multipart form (file uploads) or JSON
@@ -79,33 +84,39 @@ export const POST: APIRoute = async ({ request }) => {
   // Filter out empty file inputs
   const evidenceFiles = rawEvidenceFiles.filter(f => f.size > 0 && f.name.trim() !== '');
 
-  // Enforce server-side constraints: Max 5 files, allowed MIME types, max 5MB per file
-  const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png']);
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
-
+  // Enforce server-side constraints: Max 5 files, strict whitelist, magic bytes check, max 5MB per file
   if (evidenceFiles.length > 5) {
     return json(422, { success: false, message: 'A maximum of 5 evidence files are allowed.' });
   }
 
+  interface ValidatedUpload {
+    file: File;
+    buffer: Buffer;
+    originalName: string;
+    storedName: string;
+    mimeType: string;
+    sizeBytes: number;
+  }
+  const validatedUploads: ValidatedUpload[] = [];
+
   for (const file of evidenceFiles) {
-    const ext = path.extname(file.name).toLowerCase();
-    const mime = file.type.toLowerCase();
-    const isValidMime = ALLOWED_MIME_TYPES.has(mime) ||
-      (mime === 'application/octet-stream' && (ext === '.pdf' || ext === '.jpg' || ext === '.jpeg' || ext === '.png'));
-
-    if (!isValidMime) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const validation = validateUploadedFile(file.name, file.type, buffer);
+    if (!validation.valid) {
       return json(422, {
         success: false,
-        message: `Invalid file type for "${file.name}". Only PDF, JPEG, and PNG files are allowed.`,
+        message: validation.error || `Invalid file "${file.name}".`,
       });
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return json(422, {
-        success: false,
-        message: `File "${file.name}" exceeds the maximum 5MB size limit.`,
-      });
-    }
+    validatedUploads.push({
+      file,
+      buffer,
+      originalName: validation.sanitizedOriginalName!,
+      storedName: validation.storedFileName!,
+      mimeType: validation.mimeType!,
+      sizeBytes: buffer.length,
+    });
   }
 
   // Coerce types before Zod parsing
@@ -199,27 +210,20 @@ export const POST: APIRoute = async ({ request }) => {
     sizeBytes: number;
   }> = [];
 
-  for (const file of evidenceFiles) {
-    const safeBase = path.basename(file.name).replace(/[^a-zA-Z0-9._-]/g, '_');
-    const storedName = `${Date.now()}_${secureHex(6)}_${safeBase}`;
-    const filePath = path.join(uploadsDir, storedName);
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(filePath, buffer);
-
-    let mime = file.type || 'application/octet-stream';
-    if (mime === 'application/octet-stream') {
-      const ext = path.extname(file.name).toLowerCase();
-      if (ext === '.pdf') mime = 'application/pdf';
-      else if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
-      else if (ext === '.png') mime = 'image/png';
+  for (const item of validatedUploads) {
+    const filePath = path.join(uploadsDir, item.storedName);
+    // Path traversal defense check
+    if (!path.resolve(filePath).startsWith(path.resolve(uploadsDir))) {
+      return json(400, { success: false, message: 'Directory traversal detected in upload destination.' });
     }
+    await fs.writeFile(filePath, item.buffer);
 
     savedEvidenceAttachments.push({
-      originalName: file.name,
-      storedName,
+      originalName: item.originalName,
+      storedName: item.storedName,
       filePath,
-      mimeType: mime,
-      sizeBytes: file.size,
+      mimeType: item.mimeType,
+      sizeBytes: item.sizeBytes,
     });
   }
 

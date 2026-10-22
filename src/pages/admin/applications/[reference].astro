@@ -5,6 +5,8 @@ import { db, initDb } from "@/db";
 import { applications, applicationAttachments } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+export const prerender = false;
+
 await initDb();
 
 const { reference } = Astro.params;

@@ -11,6 +11,8 @@ import { isAllowedStoragePath, getUploadsDir } from '@/lib/storage';
 import { applicationPdfStoragePath, generateApplicationPdf, pdfStoragePath, generatePdf } from '@/lib/pdf';
 import JSZip from 'jszip';
 
+export const prerender = false;
+
 export const GET: APIRoute = async ({ request, cookies }) => {
   // Authenticate admin session
   const sessionCookie = cookies.get('admin_session')?.value;

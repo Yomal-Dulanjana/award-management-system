@@ -6,6 +6,9 @@ import { db, initDb } from '@/db';
 import { admins } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword, verifyCsrfToken } from '@/lib/auth';
+import { getClientIp, checkRateLimit } from '@/lib/security';
+
+export const prerender = false;
 
 const SignupSchema = z.object({
   name: z.string().trim().min(2, 'Full Name must be at least 2 characters.').max(100),
@@ -25,6 +28,17 @@ export const POST: APIRoute = async ({ request }) => {
       status,
       headers: { 'Content-Type': 'application/json' },
     });
+
+  // Rate limiting against registration endpoint abuse
+  const ip = getClientIp(request);
+  const isDev = process.env['APP_ENV'] === 'development';
+  const maxSignups = isDev ? 50 : 10;
+  if (!checkRateLimit(`admin_signup:${ip}`, maxSignups, 60)) {
+    return json(429, {
+      success: false,
+      message: 'Too many registration requests. Please wait a minute before retrying.',
+    });
+  }
 
   let rawBody: Record<string, unknown> = {};
 

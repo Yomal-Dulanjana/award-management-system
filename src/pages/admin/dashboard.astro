@@ -5,23 +5,15 @@ import { db, initDb } from "@/db";
 import { applications } from "@/db/schema";
 import { desc } from "drizzle-orm";
 
+export const prerender = false;
+
 await initDb();
 
-console.log("--- DB CONNECTION CHECK ---");
-console.log(
-  "Connected DB URL:",
-  process.env.DATABASE_URL
-    ? process.env.DATABASE_URL.split("@")[1]
-    : "NOT FOUND",
-);
 // Fetch all applications ordered by newest submission first
 const allApplications = await db
   .select()
   .from(applications)
   .orderBy(desc(applications.submitted_at));
-
-console.log("Total Apps Fetched:", allApplications.length);
-console.log("---------------------------");
 
 // Compute overview metrics
 const totalCount = allApplications.length;

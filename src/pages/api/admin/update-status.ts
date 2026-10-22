@@ -6,6 +6,8 @@ import { eq } from 'drizzle-orm';
 import { verifySessionToken } from '@/lib/auth';
 import type { ApplicationStatus } from '@/db/schema';
 
+export const prerender = false;
+
 export const POST: APIRoute = async ({ request, cookies }) => {
   const json = (status: number, body: Record<string, unknown>) =>
     new Response(JSON.stringify(body), {

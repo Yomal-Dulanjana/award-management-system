@@ -1,6 +1,8 @@
 // POST & GET /api/admin/logout — Clears admin session cookie and redirects to home page ('/')
 import type { APIRoute } from 'astro';
 
+export const prerender = false;
+
 export const POST: APIRoute = async ({ cookies, request }) => {
   cookies.delete('admin_session', { path: '/' });
 

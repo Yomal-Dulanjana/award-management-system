@@ -23,6 +23,14 @@ async function runTests() {
   assert.ok(homeHtml.includes('/admin/login'), 'Header must contain link to /admin/login');
   assert.ok(homeHtml.includes('Admin Portal'), 'Header must display Admin Portal button text');
 
+  // Verify Essential HTTP Security Headers
+  assert.strictEqual(homeRes.headers.get('x-content-type-options'), 'nosniff', 'Must include nosniff');
+  assert.strictEqual(homeRes.headers.get('x-frame-options'), 'DENY', 'Must include X-Frame-Options: DENY');
+  assert.strictEqual(homeRes.headers.get('x-xss-protection'), '1; mode=block', 'Must include XSS protection');
+  assert.strictEqual(homeRes.headers.get('referrer-policy'), 'strict-origin-when-cross-origin', 'Must include referrer policy');
+  assert.ok(homeRes.headers.get('permissions-policy')?.includes('camera=()'), 'Must include permissions policy');
+  assert.ok(homeRes.headers.get('content-security-policy')?.includes("frame-ancestors 'none'"), 'Must include CSP frame-ancestors none');
+
   const applyRes = await fetch(`${BASE_URL}/apply`);
   assert.strictEqual(applyRes.status, 200, 'Apply page must return 200');
 
@@ -193,9 +201,40 @@ async function runTests() {
   formData.append('declaration_confirmed', 'true');
   formData.append('signature_data', SAMPLE_SIGNATURE);
 
-  // Add sample evidence files (PDF and PNG)
+  // Test 5a: Malware Defense — Rejection of dangerous executable extensions (.php)
+  console.log('[Test 5a] Testing rejection of executable files (.php webshell)...');
+  const phpFormData = new FormData();
+  phpFormData.append('company_name', 'Hacker Corp');
+  phpFormData.append('declaration_confirmed', 'true');
+  phpFormData.append('evidence_files[]', new Blob(['<?php echo "shell"; ?>'], { type: 'application/x-php' }), 'shell.php');
+  const phpRes = await fetch(`${BASE_URL}/api/submit`, { method: 'POST', body: phpFormData });
+  assert.strictEqual(phpRes.status, 422, 'PHP upload must be rejected with 422');
+  const phpJson = await phpRes.json();
+  assert.ok(phpJson.message.includes('prohibited') || phpJson.message.includes('Only .pdf'), 'Must reject executable file extension');
+
+  // Test 5b: Malware Defense — Rejection of double extensions (payload.php.pdf)
+  console.log('[Test 5b] Testing rejection of double extension attacks (payload.php.pdf)...');
+  const doubleExtFormData = new FormData();
+  doubleExtFormData.append('company_name', 'Hacker Corp');
+  doubleExtFormData.append('declaration_confirmed', 'true');
+  doubleExtFormData.append('evidence_files[]', new Blob(['%PDF-1.4 shell'], { type: 'application/pdf' }), 'payload.php.pdf');
+  const doubleExtRes = await fetch(`${BASE_URL}/api/submit`, { method: 'POST', body: doubleExtFormData });
+  assert.strictEqual(doubleExtRes.status, 422, 'Double extension must be rejected with 422');
+
+  // Test 5c: Malware Defense — Rejection of extension spoofing (PNG extension with plain text bytes)
+  console.log('[Test 5c] Testing rejection of extension spoofing / magic bytes mismatch...');
+  const spoofFormData = new FormData();
+  spoofFormData.append('company_name', 'Hacker Corp');
+  spoofFormData.append('declaration_confirmed', 'true');
+  spoofFormData.append('evidence_files[]', new Blob(['fake text pretending to be an image'], { type: 'image/png' }), 'spoof.png');
+  const spoofRes = await fetch(`${BASE_URL}/api/submit`, { method: 'POST', body: spoofFormData });
+  assert.strictEqual(spoofRes.status, 422, 'Extension spoofing must be rejected with 422');
+  console.log('✓ File upload pipeline successfully neutralizes webshells, double extensions, and extension spoofing\n');
+
+  // Add sample evidence files with genuine magic bytes (PDF and PNG)
+  const validPngBuffer = Buffer.from(SAMPLE_SIGNATURE.split(',')[1], 'base64');
   const samplePdfBlob = new Blob(['%PDF-1.4 sample evidence pdf content for testing'], { type: 'application/pdf' });
-  const sampleImgBlob = new Blob(['sample-fake-png-bytes'], { type: 'image/png' });
+  const sampleImgBlob = new Blob([validPngBuffer], { type: 'image/png' });
   formData.append('evidence_files[]', samplePdfBlob, 'Audited_Financials_FY25.pdf');
   formData.append('evidence_files[]', sampleImgBlob, 'Export_Accreditation_Certificate.png');
 
@@ -272,6 +311,36 @@ async function runTests() {
   const zipHeader = Buffer.from(zipBytes.slice(0, 2)).toString();
   assert.strictEqual(zipHeader, 'PK', 'Downloaded ZIP must start with PK header');
   console.log(`✓ Official PDF, single attachment, and ZIP archive (${zipBytes.byteLength} bytes) downloaded successfully\n`);
+
+  // Test 8b: Public Download HMAC Security & Anti-Enumeration
+  console.log('[Test 8b] Testing public /api/download HMAC verification and tamper resistance...');
+  // Missing token
+  const noTokenRes = await fetch(`${BASE_URL}/api/download?ref=${submissionRef}`);
+  assert.strictEqual(noTokenRes.status, 401, 'Download without token must return 401');
+
+  // Tampered token
+  const badTokenRes = await fetch(`${BASE_URL}/api/download?ref=${submissionRef}&ts=${Math.floor(Date.now()/1000)}&token=deadbeefdeadbeef`);
+  assert.strictEqual(badTokenRes.status, 403, 'Download with tampered token must return 403');
+
+  // Malformed reference traversal attempt
+  const malformedRefRes = await fetch(`${BASE_URL}/api/download?ref=../../secret&ts=${Math.floor(Date.now()/1000)}&token=abc`);
+  assert.strictEqual(malformedRefRes.status, 400, 'Malformed reference must return 400');
+
+  // Valid download via signed downloadUrl
+  const validDownloadRes = await fetch(submitJson.downloadUrl);
+  assert.strictEqual(validDownloadRes.status, 200, 'Signed download URL must return 200');
+  assert.strictEqual(validDownloadRes.headers.get('content-type'), 'application/pdf');
+  console.log('✓ Public download endpoint cryptographically protected against tampering and enumeration\n');
+
+  // Test 8c: Admin API Route Guard Protection
+  console.log('[Test 8c] Testing unauthenticated access rejection on /api/admin/* endpoints...');
+  const unauthApiRes = await fetch(`${BASE_URL}/api/admin/update-status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reference: submissionRef, status: 'REJECTED' }),
+  });
+  assert.strictEqual(unauthApiRes.status, 401, 'Unauthenticated /api/admin request must return 401');
+  console.log('✓ Admin API endpoints require active, verified admin session\n');
 
   // Path Traversal Security Test
   console.log('[Test 9] Testing path traversal security defenses...');

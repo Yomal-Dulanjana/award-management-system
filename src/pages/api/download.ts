@@ -1,6 +1,5 @@
 // GET /api/download — HMAC token-verified PDF download endpoint
 import type { APIRoute } from 'astro';
-import { verifyDownloadToken } from '@/lib/security';
 import { applicationPdfStoragePath, generateApplicationPdf, pdfStoragePath, generatePdf } from '@/lib/pdf';
 import { isAllowedStoragePath } from '@/lib/storage';
 import { db, initDb } from '@/db';
@@ -9,24 +8,54 @@ import { eq } from 'drizzle-orm';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 
-export const GET: APIRoute = async ({ url }) => {
-  const ref = url.searchParams.get('ref') ?? '';
-  const tsStr = url.searchParams.get('ts') ?? '';
-  const token = url.searchParams.get('token') ?? '';
+import { verifyDownloadToken, getClientIp, checkRateLimit } from '@/lib/security';
+import { verifySessionToken } from '@/lib/auth';
 
-  if (!ref || !tsStr || !token) {
-    return new Response('Invalid download request: missing parameters.', {
+export const prerender = false;
+
+export const GET: APIRoute = async ({ url, request, cookies }) => {
+  const ip = getClientIp(request);
+
+  // Rate limit: 30 downloads per minute per IP
+  if (!checkRateLimit(`download:${ip}`, 30, 60)) {
+    return new Response('Rate limit exceeded: Too many download requests. Please try again shortly.', {
+      status: 429,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+  }
+
+  const ref = (url.searchParams.get('ref') ?? '').trim();
+  const tsStr = (url.searchParams.get('ts') ?? '').trim();
+  const token = (url.searchParams.get('token') ?? '').trim();
+
+  // Validate reference pattern strictly: BDC-202X-XXXXXXXX
+  if (!ref || !/^BDC-202[5-9]-[A-Za-z0-9]{6,20}$/.test(ref)) {
+    return new Response('Invalid download request: invalid or malformed reference number.', {
       status: 400,
       headers: { 'Content-Type': 'text/plain' },
     });
   }
 
-  const ts = parseInt(tsStr, 10);
-  if (isNaN(ts) || !verifyDownloadToken(ref, ts, token)) {
-    return new Response('Download link has expired or signature is invalid. Please request a new link.', {
-      status: 403,
-      headers: { 'Content-Type': 'text/plain' },
-    });
+  // Check if caller is an authenticated admin
+  const adminCookie = cookies.get('admin_session')?.value;
+  const isAdmin = adminCookie ? !!verifySessionToken(adminCookie) : false;
+
+  // If not authenticated admin, require valid HMAC token and timestamp
+  if (!isAdmin) {
+    if (!tsStr || !token) {
+      return new Response('Invalid download request: missing authorization token.', {
+        status: 401,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
+
+    const ts = parseInt(tsStr, 10);
+    if (isNaN(ts) || !verifyDownloadToken(ref, ts, token)) {
+      return new Response('Download link has expired or signature is invalid. Please request a new link.', {
+        status: 403,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
   }
 
   let filePath = applicationPdfStoragePath(ref);

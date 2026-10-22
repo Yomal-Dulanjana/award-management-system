@@ -8,13 +8,15 @@ const rawDatabaseUrl = process.env['DATABASE_URL']
   ?? 'mysql://user:password@localhost:3306/award_db';
 const databaseUrl = rawDatabaseUrl.replace(/^["']|["']$/g, '').trim();
 
-// TiDB Cloud or remote cloud hosts require secure TLS
+// TiDB Cloud or remote cloud hosts require mandatory secure TLS with certificate validation
+const isTiDb = databaseUrl.includes('tidb') || databaseUrl.includes('4000');
 const isRemoteOrCloud = !databaseUrl.includes('localhost') && !databaseUrl.includes('127.0.0.1');
+const requireSsl = isRemoteOrCloud || isTiDb || process.env['DATABASE_SSL'] === 'true' || process.env['TIDB_ENABLE_SSL'] === 'true';
 
 // Create persistent connection pool
 export const pool = mysql.createPool({
   uri: databaseUrl,
-  ssl: isRemoteOrCloud
+  ssl: requireSsl
     ? {
         rejectUnauthorized: true,
         minVersion: 'TLSv1.2',
