@@ -1,5 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import Layout from "@/layouts/Layout.astro";
 ---
 
 <Layout title="Best Diversified Company Award 2025/26 - Official Portal">
@@ -20,26 +20,38 @@ import Layout from '@/layouts/Layout.astro';
 
           <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.15]">
             Best Diversified <br />
-            <span class="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 bg-clip-text text-transparent">Company Award</span>
+            <span class="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 bg-clip-text text-transparent">
+              Company Award
+            </span>
           </h1>
 
+          <div class="text-xl font-bold text-white">Financial Year 2025/26</div>
+
           <p class="text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-            Recognizing visionary enterprises that achieved sustainable growth and competitive advantage by entering new markets with innovative products and services.
+            Before registering, please review the mandatory core qualification
+            below. A company must meet both diversification conditions to be
+            eligible to apply.
           </p>
 
           <!-- Highlight badges -->
           <div class="grid grid-cols-3 gap-3 pt-2 max-w-lg mx-auto lg:mx-0">
             <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-center">
               <div class="text-xl font-bold text-amber-400">6</div>
-              <div class="text-[11px] font-medium text-slate-400">Guided Steps</div>
+              <div class="text-[11px] font-medium text-slate-400">
+                Application steps
+              </div>
             </div>
             <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-center">
-              <div class="text-xl font-bold text-amber-400">Auto</div>
-              <div class="text-[11px] font-medium text-slate-400">ROI Calculation</div>
+              <div class="text-xl font-bold text-amber-400">2</div>
+              <div class="text-[11px] font-medium text-slate-400">
+                Mandatory conditions
+              </div>
             </div>
             <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-center">
-              <div class="text-xl font-bold text-emerald-400">Instant</div>
-              <div class="text-[11px] font-medium text-slate-400">PDF Dossier</div>
+              <div class="text-xl font-bold text-emerald-400">Secure</div>
+              <div class="text-[11px] font-medium text-slate-400">
+                Online submission
+              </div>
             </div>
           </div>
 
@@ -50,16 +62,26 @@ import Layout from '@/layouts/Layout.astro';
               class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-base shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5 transition-all duration-200"
             >
               <span>Start Application</span>
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
               </svg>
             </a>
-            <a
+            <!-- <a
               href="#criteria"
               class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 rounded-xl border border-slate-700 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-white font-semibold text-sm transition-colors"
             >
               Review Criteria
-            </a>
+            </a> -->
           </div>
         </div>
 
@@ -68,9 +90,12 @@ import Layout from '@/layouts/Layout.astro';
           <div class="relative w-72 sm:w-80 lg:w-96">
             <!-- Glow circle behind trophy -->
             <div class="absolute inset-0 bg-gradient-to-b from-amber-500/20 to-blue-600/10 rounded-full blur-2xl transform scale-90"></div>
-            
+
             <picture>
-              <source srcset="/assets/images/award-trophy.webp" type="image/webp" />
+              <source
+                srcset="/assets/images/award-trophy.webp"
+                type="image/webp"
+              />
               <img
                 src="/assets/images/award-trophy.png"
                 alt="Best Diversified Company Award Trophy"
@@ -89,106 +114,249 @@ import Layout from '@/layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- Core Qualification Notice -->
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-16 relative z-20">
-    <div class="bg-gradient-to-r from-blue-950/80 via-slate-900/90 to-blue-950/80 border border-blue-800/50 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
-      <div class="flex flex-col md:flex-row items-start md:items-center gap-5">
-        <div class="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
+  <!-- Focused Evaluation Criteria: Nature of Diversification (Core Qualification) -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-20 relative z-20">
+    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-md">
+      <!-- Top Pill Badge -->
+      <div class="flex justify-center mb-3">
+        <span class="inline-flex items-center bg-blue-950/60 text-blue-400 border border-blue-800/60 rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wider">
+          FOCUSED EVALUATION CRITERIA
+        </span>
+      </div>
+
+      <!-- Heading & Subtitle -->
+      <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-center tracking-tight">
+        <span class="text-white">Nature of Diversification</span>{" "}
+        <span class="text-blue-400">(Core Qualification)</span>
+      </h2>
+      <p class="text-slate-400 text-sm mt-1 text-center">
+        Mandatory condition for registration and award evaluation
+      </p>
+
+      <!-- Mandatory Condition Banner (Full Width) -->
+      <div class="bg-blue-950/40 border border-blue-900/60 rounded-2xl p-4 sm:p-5 flex items-start gap-4 mt-6">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/30 font-bold text-lg select-none">
+          !
         </div>
-        <div class="flex-1 space-y-1">
-          <h2 class="text-base font-bold text-white tracking-wide uppercase">Core Mandatory Qualification</h2>
-          <p class="text-sm text-slate-300 leading-relaxed">
-            The applying company must have introduced <strong class="text-amber-300">new products/services</strong> AND entered <strong class="text-amber-300">new markets</strong> during the evaluation period. Both conditions must be met concurrently. Existing products in new markets (market development) or new products in existing markets (product development) alone do not qualify.
+        <div class="space-y-1">
+          <h3 class="text-white font-bold text-sm sm:text-base">
+            Mandatory condition
+          </h3>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+            The company must have{" "}
+            <strong class="text-white font-semibold">
+              introduced new products/services and entered new markets
+            </strong>{" "}
+            during the evaluation period.
           </p>
         </div>
+      </div>
+
+      <!-- Two-Column Comparison Grid (What qualifies vs. Not Eligible) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+        <!-- Left Column: What qualifies -->
+        <div class="bg-emerald-950/20 border border-emerald-800/40 rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-emerald-400 font-bold text-base">
+                What qualifies
+              </h3>
+            </div>
+
+            <ul class="space-y-3 text-xs sm:text-sm text-slate-300">
+              <li class="flex items-start gap-2.5">
+                <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <span>
+                  Product/service did{" "}
+                  <strong class="text-white font-semibold">
+                    not exist previously
+                  </strong>{" "}
+                  in the company
+                </span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <span>
+                  Market/customer segment{" "}
+                  <strong class="text-white font-semibold">
+                    not previously served
+                  </strong>
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Highlighted Bottom Box Inside Left Card -->
+          <div class="bg-emerald-900/30 border border-emerald-700/40 rounded-xl p-3 text-emerald-300 font-semibold text-xs flex items-center gap-2 mt-4">
+            <svg
+              class="w-4 h-4 text-emerald-400 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            <span>Both conditions must be met to qualify.</span>
+          </div>
+        </div>
+
+        <!-- Right Column: Not Eligible -->
+        <div class="bg-rose-950/20 border border-rose-900/40 rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-rose-400 font-bold text-base">Not Eligible</h3>
+            </div>
+
+            <div class="space-y-3.5">
+              <div class="flex items-start gap-2.5">
+                <div class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-rose-200 font-medium text-sm">
+                    Existing product + new market
+                  </div>
+                  <div class="text-rose-400/80 text-xs mt-0.5">
+                    Market Development (not eligible)
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2.5 mt-3">
+                <div class="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-rose-200 font-medium text-sm">
+                    New product + existing market
+                  </div>
+                  <div class="text-rose-400/80 text-xs mt-0.5">
+                    Product Development (not eligible)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Bar -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+        <div class="text-center sm:text-left">
+          <div class="text-white font-semibold text-base">
+            Do you meet both mandatory conditions?
+          </div>
+          <div class="text-slate-400 text-xs mt-0.5">
+            If yes, continue to the registration and application form.
+          </div>
+        </div>
+
         <a
           href="/apply"
-          class="shrink-0 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs tracking-wide uppercase transition-colors"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-900/30 hover:shadow-blue-600/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 shrink-0"
         >
-          Check Eligibility
+          <span>Register / Start Application</span>
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M14 5l7 7m0 0l-7 7m7-7H3"
+            />
+          </svg>
         </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Evaluation Criteria Grid -->
-  <section id="criteria" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-800">
-    <div class="text-center max-w-2xl mx-auto mb-14 space-y-3">
-      <h2 class="text-xs font-semibold tracking-widest text-amber-400 uppercase">Framework & Assessment</h2>
-      <p class="text-3xl font-extrabold text-white tracking-tight">Six Key Evaluation Dimensions</p>
-      <p class="text-slate-400 text-sm">
-        Every application is evaluated based on verified audited metrics, strategic alignment, and certified management declarations.
-      </p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- Card 1 -->
-      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 hover:border-amber-500/40 transition-all group">
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-4 group-hover:scale-110 transition-transform">
-          01
-        </div>
-        <h3 class="text-lg font-bold text-white mb-2">Company Profile</h3>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          Operational classification (Manufacturing, Services, Trading, or Mixed) and designated corporate contact details.
-        </p>
-      </div>
-
-      <!-- Card 2 -->
-      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 hover:border-amber-500/40 transition-all group">
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-4 group-hover:scale-110 transition-transform">
-          02
-        </div>
-        <h3 class="text-lg font-bold text-white mb-2">Core Qualification</h3>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          Detailed catalog of new products/services introduced and explicit customer segments or geographic territories entered.
-        </p>
-      </div>
-
-      <!-- Card 3 -->
-      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 hover:border-amber-500/40 transition-all group">
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-4 group-hover:scale-110 transition-transform">
-          03
-        </div>
-        <h3 class="text-lg font-bold text-white mb-2">Audited Revenue Contribution</h3>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          Financial weight of diversification activities benchmarked directly against total audited company turnover.
-        </p>
-      </div>
-
-      <!-- Card 4 -->
-      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 hover:border-amber-500/40 transition-all group">
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-4 group-hover:scale-110 transition-transform">
-          04
-        </div>
-        <h3 class="text-lg font-bold text-white mb-2">Gross Profit Improvement</h3>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          Measurable gross profit margin expansion categorized from over 5% improvements down to baseline levels.
-        </p>
-      </div>
-
-      <!-- Card 5 -->
-      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 hover:border-amber-500/40 transition-all group">
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-4 group-hover:scale-110 transition-transform">
-          05
-        </div>
-        <h3 class="text-lg font-bold text-white mb-2">ROI & Payback Period</h3>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          Capital allocation efficiency, technology investment recovery, and annualized operating profitability.
-        </p>
-      </div>
-
-      <!-- Card 6 -->
-      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 hover:border-amber-500/40 transition-all group">
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-4 group-hover:scale-110 transition-transform">
-          06
-        </div>
-        <h3 class="text-lg font-bold text-white mb-2">Declaration & Signature</h3>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          Formal legal affirmation by an authorized director, backed by an encrypted digital biometric signature.
-        </p>
       </div>
     </div>
   </section>
