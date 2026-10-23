@@ -893,6 +893,16 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       window.scrollTo({ top: 80, behavior: 'smooth' });
     }
 
+    function highlightInputError(inp: HTMLElement | null) {
+      if (!inp) return;
+      inp.classList.remove('border-slate-700');
+      inp.classList.add('border-rose-500');
+      inp.addEventListener('input', () => {
+        inp.classList.remove('border-rose-500');
+        inp.classList.add('border-slate-700');
+      }, { once: true });
+    }
+
     // Step validation rules
     function validateStep(step: number): boolean {
       if (step === 1) {
@@ -918,19 +928,68 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
           return false;
         }
 
-        const productNames = form?.querySelectorAll('input[name*="[name]"]') as NodeListOf<HTMLInputElement>;
-        let hasProduct = false;
-        productNames.forEach(inp => {
-          if (inp.value.trim().length > 0) hasProduct = true;
+        // Validate products repeater
+        const productRows = form?.querySelectorAll('#products-list .product-row') as NodeListOf<HTMLElement>;
+
+        // Clear existing error borders on product inputs
+        productRows.forEach(row => {
+          row.querySelectorAll('input').forEach(inp => {
+            inp.classList.remove('border-rose-500');
+            inp.classList.add('border-slate-700');
+          });
         });
-        if (!hasProduct) {
-          showError('Please list at least one diversified product or service.');
+
+        if (!productRows || productRows.length === 0) {
+          showError('Please add at least one product/service with a description.');
           return false;
+        }
+
+        for (let i = 0; i < productRows.length; i++) {
+          const row = productRows[i]!;
+          const nameInp = row.querySelector('input[name*="[name]"]') as HTMLInputElement | null;
+          const descInp = row.querySelector('input[name*="[description]"]') as HTMLInputElement | null;
+
+          const nameVal = nameInp?.value.trim() || '';
+          const descVal = descInp?.value.trim() || '';
+
+          // If row is completely empty
+          if (!nameVal && !descVal) {
+            showError('Please add at least one product/service with a description.');
+            if (nameInp) highlightInputError(nameInp);
+            if (descInp) highlightInputError(descInp);
+            nameInp?.focus();
+            return false;
+          }
+
+          // If name is empty
+          if (!nameVal) {
+            showError('Please add at least one product/service with a description.');
+            if (nameInp) {
+              highlightInputError(nameInp);
+              nameInp.focus();
+            }
+            return false;
+          }
+
+          // If description is empty
+          if (!descVal) {
+            showError('Please add at least one product/service with a description.');
+            if (descInp) {
+              highlightInputError(descInp);
+              descInp.focus();
+            }
+            return false;
+          }
         }
 
         const marketDetails = (form?.elements.namedItem('new_market_details') as HTMLTextAreaElement)?.value.trim();
         if (!marketDetails) {
           showError('Please describe the new market entered.');
+          const marketInp = form?.elements.namedItem('new_market_details') as HTMLTextAreaElement | null;
+          if (marketInp) {
+            highlightInputError(marketInp);
+            marketInp.focus();
+          }
           return false;
         }
         return true;
@@ -1407,7 +1466,7 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
           if (contentType.includes('application/json')) {
             try {
               const errData = await res.json();
-              errMsg = errData?.message || (errData?.errors ? Object.values(errData.errors).flat().join(', ') : '');
+              errMsg = errData?.error || errData?.message || (errData?.errors ? Object.values(errData.errors).flat().join(', ') : '');
               if (errData?.field) {
                 const f = String(errData.field);
                 if (f.includes('company') || f.includes('contact') || f.includes('operations')) showStep(1);

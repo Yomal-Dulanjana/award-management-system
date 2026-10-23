@@ -12,8 +12,8 @@ const GROSS_OPTIONS = [
 
 // Single product/service repeater row
 const ProductRowSchema = z.object({
-  name: z.string().min(1, 'Product name is required').max(300),
-  description: z.string().min(1, 'Description is required').max(2000),
+  name: z.string().trim().min(1, 'Product name is required').max(300),
+  description: z.string().trim().min(1, 'Description is required').max(2000),
 });
 
 // Single revenue repeater row (client-sent percent ignored — recalculated server-side)
@@ -36,7 +36,7 @@ export const ApplicationSchema = z.object({
   new_products_services: z.literal(true, { errorMap: () => ({ message: 'New products/services must be confirmed.' }) }),
   new_market_entered: z.literal(true, { errorMap: () => ({ message: 'New market entered must be confirmed.' }) }),
   new_market_details: z.string().max(3000).optional(),
-  products: z.array(ProductRowSchema).min(1, 'At least one product or service is required'),
+  products: z.array(ProductRowSchema).min(1, 'At least one product or service with description is required'),
 
   // Step 3
   total_company_revenue: z.number({ invalid_type_error: 'Revenue must be a number' }).positive('Total company revenue must be greater than zero'),

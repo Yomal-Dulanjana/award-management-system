@@ -229,7 +229,32 @@ async function runTests() {
   spoofFormData.append('evidence_files[]', new Blob(['fake text pretending to be an image'], { type: 'image/png' }), 'spoof.png');
   const spoofRes = await fetch(`${BASE_URL}/api/submit`, { method: 'POST', body: spoofFormData });
   assert.strictEqual(spoofRes.status, 422, 'Extension spoofing must be rejected with 422');
-  console.log('✓ File upload pipeline successfully neutralizes webshells, double extensions, and extension spoofing\n');
+  // Test 5d: Products Repeater Mandatory Validation (Empty array or incomplete items)
+  console.log('[Test 5d] Testing mandatory products validation on /api/submit...');
+  const noProductsRes = await fetch(`${BASE_URL}/api/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      company_name: 'Test Corp',
+      products: [],
+    }),
+  });
+  assert.strictEqual(noProductsRes.status, 400, 'Missing products array must return 400');
+  const noProductsJson = await noProductsRes.json();
+  assert.strictEqual(noProductsJson.error, 'At least one product or service with description is required');
+
+  const emptyProductFieldsRes = await fetch(`${BASE_URL}/api/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      company_name: 'Test Corp',
+      products: [{ product_service: 'Some Product', brief_description: '   ' }],
+    }),
+  });
+  assert.strictEqual(emptyProductFieldsRes.status, 400, 'Whitespace/empty description must return 400');
+  const emptyProductFieldsJson = await emptyProductFieldsRes.json();
+  assert.strictEqual(emptyProductFieldsJson.error, 'At least one product or service with description is required');
+  console.log('✓ Backend enforces mandatory products with non-empty name and description (HTTP 400)\n');
 
   // Add sample evidence files with genuine magic bytes (PDF and PNG)
   const validPngBuffer = Buffer.from(SAMPLE_SIGNATURE.split(',')[1], 'base64');

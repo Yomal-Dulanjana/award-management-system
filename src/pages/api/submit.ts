@@ -128,10 +128,44 @@ export const POST: APIRoute = async ({ request }) => {
     return raw;
   };
 
-  // Normalize array fields from form encoding
-  const products = Array.isArray(rawData['products'])
-    ? (rawData['products'] as Array<Record<string, string>>).filter(p => p['name'] || p['description'])
+  // Enforce mandatory products repeater: at least 1 item with non-empty trimmed strings
+  const rawProducts = Array.isArray(rawData['products'])
+    ? (rawData['products'] as Array<Record<string, unknown>>)
     : [];
+
+  if (!rawProducts || rawProducts.length === 0) {
+    return json(400, {
+      success: false,
+      error: 'At least one product or service with description is required',
+      message: 'At least one product or service with description is required',
+    });
+  }
+
+  const normalizedProducts: Array<{ name: string; description: string }> = [];
+  for (const item of rawProducts) {
+    if (!item || typeof item !== 'object') continue;
+    const pName = sanitizeText(String(item['product_service'] ?? item['name'] ?? '')).trim();
+    const pDesc = sanitizeText(String(item['brief_description'] ?? item['description'] ?? '')).trim();
+
+    if (!pName || !pDesc) {
+      return json(400, {
+        success: false,
+        error: 'At least one product or service with description is required',
+        message: 'At least one product or service with description is required',
+      });
+    }
+
+    normalizedProducts.push({ name: pName, description: pDesc });
+  }
+
+  if (normalizedProducts.length === 0) {
+    return json(400, {
+      success: false,
+      error: 'At least one product or service with description is required',
+      message: 'At least one product or service with description is required',
+    });
+  }
+
   const revenue = Array.isArray(rawData['revenue'])
     ? (rawData['revenue'] as Array<Record<string, string>>).filter(r => r['activity'] || r['revenue'])
     : [];
@@ -148,7 +182,7 @@ export const POST: APIRoute = async ({ request }) => {
     new_products_services:      rawData['new_products_services'] === true || rawData['new_products_services'] === 'true' || rawData['new_products_services'] === '1',
     new_market_entered:         rawData['new_market_entered'] === true || rawData['new_market_entered'] === 'true' || rawData['new_market_entered'] === '1',
     new_market_details:         sanitizeText(String(rawData['new_market_details'] ?? '')),
-    products:                   products.map(p => ({ name: sanitizeText(p['name'] ?? ''), description: sanitizeText(p['description'] ?? '') })),
+    products:                   normalizedProducts,
     total_company_revenue:      coerce(rawData['total_company_revenue']),
     revenue:                    revenue.map(r => ({ activity: sanitizeText(r['activity'] ?? ''), revenue: coerce(r['revenue']) })),
     gross_profit_margin_option: sanitizeText(String(rawData['gross_profit_margin_option'] ?? '')),
