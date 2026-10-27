@@ -171,14 +171,29 @@ export const POST: APIRoute = async ({ request }) => {
     : [];
 
   // Build parse input — sanitize strings, coerce numbers
+  const rawContactName = (() => {
+    const explicit = String(rawData['contact_name'] ?? '').trim();
+    if (explicit) return explicit;
+    const combined = String(rawData['contact_name_designation'] ?? '').trim();
+    return combined ? (combined.split('-')[0]?.trim() || '') : '';
+  })();
+
+  const rawContactDesignation = (() => {
+    const explicit = String(rawData['contact_designation'] ?? '').trim();
+    if (explicit) return explicit;
+    const combined = String(rawData['contact_name_designation'] ?? '').trim();
+    return combined ? (combined.split('-').slice(1).join('-').trim() || 'Managing Director') : '';
+  })();
+
   const parseInput = {
     ...rawData,
     company_name:               sanitizeText(String(rawData['company_name'] ?? '')),
     financial_year:             sanitizeText(String(rawData['financial_year'] ?? '2025/26')),
     nature_operations:          sanitizeText(String(rawData['nature_operations'] ?? '')),
-    contact_name_designation:   sanitizeText(String(rawData['contact_name_designation'] ?? '')),
+    contact_name:               sanitizeText(rawContactName),
+    contact_designation:        sanitizeText(rawContactDesignation),
     contact_email:              String(rawData['contact_email'] ?? '').trim().toLowerCase(),
-    contact_phone:              sanitizeText(String(rawData['contact_phone'] ?? '')),
+    contact_phone:              sanitizeText(String(rawData['contact_phone'] ?? '')).trim(),
     new_products_services:      rawData['new_products_services'] === true || rawData['new_products_services'] === 'true' || rawData['new_products_services'] === '1',
     new_market_entered:         rawData['new_market_entered'] === true || rawData['new_market_entered'] === 'true' || rawData['new_market_entered'] === '1',
     new_market_details:         sanitizeText(String(rawData['new_market_details'] ?? '')),
@@ -267,7 +282,8 @@ export const POST: APIRoute = async ({ request }) => {
     companyName:            data.company_name,
     financialYear:          data.financial_year,
     natureOperations:       data.nature_operations,
-    contactName:            data.contact_name_designation,
+    contactName:            data.contact_name,
+    contactDesignation:     data.contact_designation,
     contactEmail:           data.contact_email,
     contactPhone:           data.contact_phone,
     newProductsServices:    data.new_products_services,
@@ -315,9 +331,12 @@ export const POST: APIRoute = async ({ request }) => {
       company_name: data.company_name,
       financial_year: data.financial_year,
       nature_of_operations: data.nature_operations,
-      contact_name: data.contact_name_designation,
+      contact_name: data.contact_name,
+      contact_designation: data.contact_designation,
       contact_email: data.contact_email,
       contact_phone: data.contact_phone,
+      declaration_name: data.declaration_name,
+      declaration_designation: data.declaration_designation,
       total_revenue: String(data.total_company_revenue),
       diversification_revenue: String(metrics.diversificationTotal),
       total_investment: String(data.total_investment),
@@ -359,7 +378,7 @@ export const POST: APIRoute = async ({ request }) => {
     try {
       await sendApplicantConfirmation(
         { reference, companyName: data.company_name, financialYear: data.financial_year,
-          contactEmail: data.contact_email, contactName: data.contact_name_designation,
+          contactEmail: data.contact_email, contactName: data.contact_name,
           roi: metrics.roi, payback: metrics.payback,
           diversificationTotal: metrics.diversificationTotal, combinedPercent: metrics.combinedPercent,
           downloadUrl, baseUrl },
@@ -374,7 +393,7 @@ export const POST: APIRoute = async ({ request }) => {
       const adminDetailUrl = `${baseUrl}/admin/applications/${reference}`;
       await sendAdminNotification(
         { reference, companyName: data.company_name, financialYear: data.financial_year,
-          contactEmail: data.contact_email, contactName: data.contact_name_designation,
+          contactEmail: data.contact_email, contactName: data.contact_name,
           roi: metrics.roi, payback: metrics.payback,
           diversificationTotal: metrics.diversificationTotal, combinedPercent: metrics.combinedPercent,
           downloadUrl, baseUrl, adminDetailUrl },

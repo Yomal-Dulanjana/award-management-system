@@ -40,7 +40,8 @@ interface StoredFormData {
   new_market_details?: string;
   products?: Array<{ name: string; description: string }>;
   gross_profit_margin_option?: string;
-  revenue?: Array<{ activity: string; revenue: number }>;
+  contact_name?: string;
+  contact_designation?: string;
   declaration_name?: string;
   declaration_designation?: string;
   declaration_date?: string;
@@ -314,10 +315,18 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
             </div>
             <div>
               <span class="text-xs text-slate-400 uppercase tracking-wider block">
-                Authorized Representative
+                Contact Name
               </span>
               <span class="font-semibold text-white mt-1 block">
                 {app.contact_name}
+              </span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-400 uppercase tracking-wider block">
+                Designation
+              </span>
+              <span class="font-semibold text-white mt-1 block">
+                {app.contact_designation || formData.contact_designation || '—'}
               </span>
             </div>
             <div>
@@ -661,16 +670,15 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
                 Signatory Name
               </span>
               <span class="font-semibold text-white mt-0.5 block text-sm">
-                {formData.declaration_name || app.contact_name}
+                {app.declaration_name || formData.declaration_name || app.contact_name}
               </span>
             </div>
             <div>
               <span class="text-slate-400 uppercase tracking-wider block">
-                Official Designation
+                Designation / Title
               </span>
               <span class="font-semibold text-white mt-0.5 block">
-                {formData.declaration_designation ||
-                  "Authorized Representative"}
+                {app.declaration_designation || formData.declaration_designation || app.contact_designation || formData.contact_designation || "Authorized Representative"}
               </span>
             </div>
             <div>

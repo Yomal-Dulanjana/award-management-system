@@ -181,9 +181,10 @@ async function runTests() {
   formData.append('company_name', 'Enterprise Holdings PLC');
   formData.append('financial_year', '2025/26');
   formData.append('nature_operations', 'Manufacturing');
-  formData.append('contact_name_designation', 'Anura Perera - Managing Director');
+  formData.append('contact_name', 'Anura Perera');
+  formData.append('contact_designation', 'Managing Director');
   formData.append('contact_email', 'yomaldulanjana00@gmail.com');
-  formData.append('contact_phone', '+94 11 987 6543');
+  formData.append('contact_phone', '0779876543');
   formData.append('new_products_services', 'true');
   formData.append('new_market_entered', 'true');
   formData.append('new_market_details', 'Expanded into modern EU and Japanese clean tech supply chains.');
@@ -229,6 +230,7 @@ async function runTests() {
   spoofFormData.append('evidence_files[]', new Blob(['fake text pretending to be an image'], { type: 'image/png' }), 'spoof.png');
   const spoofRes = await fetch(`${BASE_URL}/api/submit`, { method: 'POST', body: spoofFormData });
   assert.strictEqual(spoofRes.status, 422, 'Extension spoofing must be rejected with 422');
+
   // Test 5d: Products Repeater Mandatory Validation (Empty array or incomplete items)
   console.log('[Test 5d] Testing mandatory products validation on /api/submit...');
   const noProductsRes = await fetch(`${BASE_URL}/api/submit`, {
@@ -255,6 +257,39 @@ async function runTests() {
   const emptyProductFieldsJson = await emptyProductFieldsRes.json();
   assert.strictEqual(emptyProductFieldsJson.error, 'At least one product or service with description is required');
   console.log('✓ Backend enforces mandatory products with non-empty name and description (HTTP 400)\n');
+
+  // Test 5e: Strict Sri Lankan Phone Number Validation (Reject non-10-digit / invalid prefix)
+  console.log('[Test 5e] Testing strict Sri Lankan phone number validation on /api/submit...');
+  const invalidPhoneRes = await fetch(`${BASE_URL}/api/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      company_name: 'Test Corp',
+      nature_operations: 'Services',
+      contact_name: 'Test User',
+      contact_designation: 'Manager',
+      contact_email: 'test@example.com',
+      contact_phone: 'dfsdfs', // Invalid alphabetic string
+      new_products_services: true,
+      new_market_entered: true,
+      products: [{ name: 'P1', description: 'D1' }],
+      total_company_revenue: 1000000,
+      revenue: [{ activity: 'Service', revenue: 1000000 }],
+      gross_profit_margin_option: 'Improved by more than 5%',
+      total_investment: 100000,
+      operating_profit: 20000,
+      declaration_name: 'Test User',
+      declaration_designation: 'Manager',
+      declaration_confirmed: true,
+    }),
+  });
+  assert.strictEqual(invalidPhoneRes.status, 422, 'Invalid phone number must return 422');
+  const invalidPhoneJson = await invalidPhoneRes.json();
+  assert.ok(
+    invalidPhoneJson.message.includes('valid 10-digit Sri Lankan phone number'),
+    'Error message must state: Please enter a valid 10-digit Sri Lankan phone number'
+  );
+  console.log('✓ Backend enforces strict 10-digit Sri Lankan phone validation (HTTP 422)\n');
 
   // Add sample evidence files with genuine magic bytes (PDF and PNG)
   const validPngBuffer = Buffer.from(SAMPLE_SIGNATURE.split(',')[1], 'base64');
@@ -287,6 +322,10 @@ async function runTests() {
   assert.strictEqual(appRows.length, 1, 'Application must be stored in MySQL');
   const appDb = appRows[0];
   assert.strictEqual(appDb.company_name, 'Enterprise Holdings PLC');
+  assert.strictEqual(appDb.contact_name, 'Anura Perera');
+  assert.strictEqual(appDb.contact_designation, 'Managing Director');
+  assert.strictEqual(appDb.declaration_name, 'Anura Perera');
+  assert.strictEqual(appDb.declaration_designation, 'Managing Director');
   assert.strictEqual(appDb.status, 'PENDING');
   assert.strictEqual(Number(appDb.roi_percent), 30);
 

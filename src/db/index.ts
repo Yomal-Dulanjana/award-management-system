@@ -55,8 +55,11 @@ export async function initDb(): Promise<void> {
         financial_year VARCHAR(32) NOT NULL,
         nature_of_operations TEXT NOT NULL,
         contact_name VARCHAR(255) NOT NULL,
+        contact_designation VARCHAR(255) NOT NULL,
         contact_email VARCHAR(255) NOT NULL,
         contact_phone VARCHAR(64) NOT NULL,
+        declaration_name VARCHAR(255) NOT NULL,
+        declaration_designation VARCHAR(255) NOT NULL,
         total_revenue DECIMAL(15,2) NOT NULL,
         diversification_revenue DECIMAL(15,2) NOT NULL,
         total_investment DECIMAL(15,2) NOT NULL,
@@ -72,6 +75,22 @@ export async function initDb(): Promise<void> {
         INDEX idx_submitted_at (submitted_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+
+    // Ensure all required columns exist on applications table (seamless migration for existing databases)
+    const columnsToEnsure = [
+      { name: 'contact_designation', type: 'VARCHAR(255) NOT NULL DEFAULT \'\'' },
+      { name: 'declaration_name', type: 'VARCHAR(255) NOT NULL DEFAULT \'\'' },
+      { name: 'declaration_designation', type: 'VARCHAR(255) NOT NULL DEFAULT \'\'' },
+    ];
+    for (const col of columnsToEnsure) {
+      try {
+        await conn.query(`ALTER TABLE applications ADD COLUMN ${col.name} ${col.type}`);
+      } catch (err: any) {
+        if (err?.errno !== 1060 && !String(err?.message || '').toLowerCase().includes('duplicate column')) {
+          console.warn(`[DB Migration Notice for ${col.name}]`, err?.message);
+        }
+      }
+    }
 
     // 3. Application Attachments table
     await conn.query(`

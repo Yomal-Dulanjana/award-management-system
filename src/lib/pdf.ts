@@ -24,6 +24,7 @@ export interface PdfBundle {
   financialYear: string;
   natureOperations: string;
   contactName: string;
+  contactDesignation?: string | undefined;
   contactEmail: string;
   contactPhone: string;
   newProductsServices: boolean;
@@ -281,12 +282,13 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   curY = drawSectionBar(curY, 'Section 1 - Company Details');
   curY += 8;
 
-  // Table 1: Company details (6 distinct rows)
+  // Table 1: Company details (7 distinct rows)
   const sec1Rows = [
     ['Company Name', bundle.companyName || 'N/A'],
     ['Financial Year Covered', bundle.financialYear || '2025/26'],
     ['Nature of Operations', bundle.natureOperations || 'N/A'],
     ['Contact Person', bundle.contactName || 'N/A'],
+    ['Designation', bundle.contactDesignation || 'N/A'],
     ['Email Address', bundle.contactEmail || 'N/A'],
     ['Telephone', bundle.contactPhone || 'N/A']
   ];

@@ -2,6 +2,8 @@ node_modules/
 dist/
 .astro/
 storage/temp/
+storage/uploads/
+storage/pdfs/
 *.pdf
 .env
 *.local

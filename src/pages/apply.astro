@@ -1,6 +1,6 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import SignaturePad from '@/components/signature/SignaturePad.astro';
+import Layout from "@/layouts/Layout.astro";
+import SignaturePad from "@/components/signature/SignaturePad.astro";
 ---
 
 <Layout title="Apply - Best Diversified Company Award 2025/26">
@@ -10,8 +10,18 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       href="/"
       class="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-amber-400 mb-6 transition-colors"
     >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
       </svg>
       <span>Back to Award Overview</span>
     </a>
@@ -20,11 +30,18 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
     <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl mb-8">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
-          <span class="text-xs uppercase font-bold text-amber-400 tracking-wider">Application Dossier</span>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Official Submission Form</h1>
+          <span class="text-xs uppercase font-bold text-amber-400 tracking-wider">
+            Application
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">
+            Official Submission Form
+          </h1>
         </div>
         <div class="text-right">
-          <span id="step-counter" class="text-xs font-mono font-bold text-amber-400 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20">
+          <span
+            id="step-counter"
+            class="text-xs font-mono font-bold text-amber-400 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20"
+          >
             Step 1 of 6
           </span>
         </div>
@@ -40,12 +57,24 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
           ></div>
         </div>
         <div class="flex justify-between text-[11px] font-medium text-slate-400 mt-2.5 hidden sm:flex">
-          <span class="step-lbl" data-step="1">1. Company</span>
-          <span class="step-lbl" data-step="2">2. Qualification</span>
-          <span class="step-lbl" data-step="3">3. Revenue</span>
-          <span class="step-lbl" data-step="4">4. Margin</span>
-          <span class="step-lbl" data-step="5">5. ROI</span>
-          <span class="step-lbl" data-step="6">6. Declaration</span>
+          <span class="step-lbl" data-step="1">
+            1. Company
+          </span>
+          <span class="step-lbl" data-step="2">
+            2. Qualification
+          </span>
+          <span class="step-lbl" data-step="3">
+            3. Revenue
+          </span>
+          <span class="step-lbl" data-step="4">
+            4. Margin
+          </span>
+          <span class="step-lbl" data-step="5">
+            5. ROI
+          </span>
+          <span class="step-lbl" data-step="6">
+            6. Declaration
+          </span>
         </div>
       </div>
     </div>
@@ -56,10 +85,22 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       class="hidden bg-rose-950/60 border border-rose-800 text-rose-200 px-5 py-4 rounded-2xl mb-8 flex items-start gap-3 text-sm animate-shake"
       role="alert"
     >
-      <svg class="w-5 h-5 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      <svg
+        class="w-5 h-5 text-rose-400 shrink-0 mt-0.5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
       </svg>
-      <div id="error-message" class="flex-1 font-medium">Please correct the highlighted fields.</div>
+      <div id="error-message" class="flex-1 font-medium">
+        Please correct the highlighted fields.
+      </div>
     </div>
 
     <!-- Draft notification -->
@@ -68,12 +109,26 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       class="hidden bg-blue-950/60 border border-blue-800 text-blue-200 px-5 py-3 rounded-2xl mb-6 flex items-center justify-between text-xs"
     >
       <span class="flex items-center gap-2">
-        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        <svg
+          class="w-4 h-4 text-blue-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
         Restored saved draft from local storage.
       </span>
-      <button type="button" id="clear-draft-btn" class="text-rose-400 hover:text-rose-300 font-semibold underline">
+      <button
+        type="button"
+        id="clear-draft-btn"
+        class="text-rose-400 hover:text-rose-300 font-semibold underline"
+      >
         Discard Draft
       </button>
     </div>
@@ -92,10 +147,17 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       />
 
       <!-- STEP 1: Company Details & Contact -->
-      <section class="wizard-step bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="1">
+      <section
+        class="wizard-step bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+        data-step="1"
+      >
         <div>
-          <h2 class="text-xl font-bold text-white">1. Company Details & Contact Information</h2>
-          <p class="text-slate-400 text-xs mt-1">Specify applicant identity, nature of enterprise, and designated officer.</p>
+          <h2 class="text-xl font-bold text-white">
+            1. Company Details & Contact Information
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">
+            Tell us about the applicant company and its primary contact person
+          </p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -144,17 +206,32 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         </div>
 
         <div class="pt-6 border-t border-slate-800">
-          <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-4">Designated Contact Person</h3>
+          <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-4">
+            Designated Contact Person
+          </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div class="sm:col-span-2 space-y-1.5">
+            <div class="space-y-1.5">
               <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                Name & Designation <span class="text-rose-400">*</span>
+                Contact Person Name <span class="text-rose-400">*</span>
               </label>
               <input
                 type="text"
-                name="contact_name_designation"
+                name="contact_name"
                 required
-                placeholder="e.g. A. B. Perera - Managing Director"
+                placeholder="e.g. A. B. Perera"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                Designation <span class="text-rose-400">*</span>
+              </label>
+              <input
+                type="text"
+                name="contact_designation"
+                required
+                placeholder="e.g. Managing Director"
                 class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
               />
             </div>
@@ -172,17 +249,32 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               />
             </div>
 
-            <div class="space-y-1.5">
-              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                Telephone <span class="text-rose-400">*</span>
+            <div class="space-y-1.5" id="phone-container">
+              <label
+                for="contact_phone"
+                class="block text-xs font-semibold text-slate-300 uppercase tracking-wider"
+              >
+                Mobile / Phone Number <span class="text-rose-400">*</span>
               </label>
               <input
                 type="tel"
                 name="contact_phone"
+                id="contact_phone"
+                inputmode="numeric"
+                maxlength="10"
+                placeholder="07XXXXXXXX"
+                autocomplete="tel"
                 required
-                placeholder="e.g. +94 11 234 5678"
-                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all font-mono"
               />
+              <p
+                id="phone-error-msg"
+                class="hidden text-xs text-rose-400 font-medium mt-1"
+              >
+                Please enter a valid 10-digit Sri Lankan phone number (e.g.,
+                07XXXXXXXX)
+              </p>
             </div>
           </div>
         </div>
@@ -193,25 +285,54 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
           >
             <span>Continue to Step 2</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
       </section>
 
       <!-- STEP 2: Qualification & Diversified Products -->
-      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="2">
+      <section
+        class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+        data-step="2"
+      >
         <div>
-          <h2 class="text-xl font-bold text-white">2. Diversification Qualification & Activities</h2>
-          <p class="text-slate-400 text-xs mt-1">Both qualification conditions are mandatory under award statute.</p>
+          <h2 class="text-xl font-bold text-white">
+            2. Diversification Qualification & Activities
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">
+            These two qualification conditions are mandatory. Then, list each
+            diversified product or service introduced during the evaluation
+            period.
+          </p>
         </div>
 
         <!-- Mandatory Choices Box -->
         <div class="bg-blue-950/40 border border-blue-900/60 rounded-2xl p-5 space-y-4">
           <div class="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span>Mandatory Core Criteria</span>
           </div>
@@ -226,8 +347,13 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
                 required
               />
               <span class="text-sm">
-                <strong class="text-white block">New Products / Services Introduced</strong>
-                <span class="text-slate-400 text-xs">The product or service did not exist in the company prior to this initiative.</span>
+                <strong class="text-white block">
+                  New Products / Services Introduced
+                </strong>
+                <span class="text-slate-400 text-xs">
+                  The product or service did not exist in the company prior to
+                  this initiative.
+                </span>
               </span>
             </label>
 
@@ -241,7 +367,10 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               />
               <span class="text-sm">
                 <strong class="text-white block">New Market Entered</strong>
-                <span class="text-slate-400 text-xs">A customer segment, industry, or geographic market not previously served.</span>
+                <span class="text-slate-400 text-xs">
+                  A customer segment, industry, or geographic market not
+                  previously served.
+                </span>
               </span>
             </label>
           </div>
@@ -251,9 +380,12 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         <div class="space-y-4 pt-2">
           <div class="flex items-center justify-between">
             <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Diversified Products / Services Introduced <span class="text-rose-400">*</span>
+              Diversified Products / Services Introduced{" "}
+              <span class="text-rose-400">*</span>
             </label>
-            <span class="text-[11px] text-slate-400">Add at least one item</span>
+            <span class="text-[11px] text-slate-400">
+              Add at least one item
+            </span>
           </div>
 
           <div id="products-list" class="space-y-3">
@@ -291,8 +423,18 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             id="add-product-btn"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
           >
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <svg
+              class="w-4 h-4 text-amber-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             <span>Add another product / service</span>
           </button>
@@ -318,7 +460,8 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             Supporting Evidence & Documents (Optional)
           </label>
           <div class="text-[11px] text-slate-400 mb-2">
-            Attach brief reports, product brochures, or images demonstrating diversification (PDF/JPG/PNG/WEBP, max 5MB each).
+            Attach brief reports, product brochures, or images demonstrating
+            diversification (PDF/JPG/PNG/WEBP, max 5MB each).
           </div>
           <input
             type="file"
@@ -341,23 +484,41 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
           >
             <span>Continue to Step 3</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
       </section>
 
       <!-- STEP 3: Revenue from Diversification -->
-      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="3">
+      <section
+        class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+        data-step="3"
+      >
         <div>
-          <h2 class="text-xl font-bold text-white">3. Revenue from Diversification</h2>
-          <p class="text-slate-400 text-xs mt-1">All figures must be based on Audited Financial Statements.</p>
+          <h2 class="text-xl font-bold text-white">
+            3. Revenue from Diversification
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">
+            All figures must be based on Audited Financial Statements.
+          </p>
         </div>
 
         <div class="space-y-1.5 max-w-md">
           <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-            Total Audited Company Revenue (Rs.) <span class="text-rose-400">*</span>
+            Total Audited Company Revenue (Rs.){" "}
+            <span class="text-rose-400">*</span>
           </label>
           <input
             type="text"
@@ -374,9 +535,12 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         <div class="space-y-4 pt-4 border-t border-slate-800">
           <div class="flex items-center justify-between">
             <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Diversified Business Activities <span class="text-rose-400">*</span>
+              Diversified Business Activities{" "}
+              <span class="text-rose-400">*</span>
             </label>
-            <span class="text-[11px] text-slate-400">% calculated automatically</span>
+            <span class="text-[11px] text-slate-400">
+              % calculated automatically
+            </span>
           </div>
 
           <div id="revenue-list" class="space-y-3">
@@ -418,8 +582,18 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             id="add-revenue-btn"
             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
           >
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <svg
+              class="w-4 h-4 text-amber-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             <span>Add another business activity</span>
           </button>
@@ -428,12 +602,26 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         <!-- Live Metrics Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800">
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Diversification Revenue</div>
-            <div id="live-total-revenue" class="text-xl font-bold font-mono text-white mt-1">Rs. 0.00</div>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              Total Diversification Revenue
+            </div>
+            <div
+              id="live-total-revenue"
+              class="text-xl font-bold font-mono text-white mt-1"
+            >
+              Rs. 0.00
+            </div>
           </div>
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Combined % of Total Revenue</div>
-            <div id="live-combined-percent" class="text-xl font-bold font-mono text-amber-400 mt-1">0.00%</div>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              Combined % of Total Revenue
+            </div>
+            <div
+              id="live-combined-percent"
+              class="text-xl font-bold font-mono text-amber-400 mt-1"
+            >
+              0.00%
+            </div>
           </div>
         </div>
 
@@ -449,18 +637,35 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
           >
             <span>Continue to Step 4</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
       </section>
 
       <!-- STEP 4: Gross Profit Margin Improvement -->
-      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="4">
+      <section
+        class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+        data-step="4"
+      >
         <div>
-          <h2 class="text-xl font-bold text-white">4. Gross Profit Margin Improvement</h2>
-          <p class="text-slate-400 text-xs mt-1">Select the verified margin outcome achieved via diversification.</p>
+          <h2 class="text-xl font-bold text-white">
+            4. Gross Profit Margin Improvement
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">
+            Select the verified margin outcome achieved via diversification.
+          </p>
         </div>
 
         <div class="space-y-3" id="margin-options-group">
@@ -472,7 +677,9 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               required
               class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
             />
-            <span class="text-sm font-semibold text-white">Improved by more than 5%</span>
+            <span class="text-sm font-semibold text-white">
+              Improved by more than 5%
+            </span>
           </label>
 
           <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
@@ -483,7 +690,9 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               required
               class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
             />
-            <span class="text-sm font-semibold text-white">Improved by 3% to less than 5%</span>
+            <span class="text-sm font-semibold text-white">
+              Improved by 3% to less than 5%
+            </span>
           </label>
 
           <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
@@ -494,7 +703,9 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               required
               class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
             />
-            <span class="text-sm font-semibold text-white">Improved by 1% to less than 3%</span>
+            <span class="text-sm font-semibold text-white">
+              Improved by 1% to less than 3%
+            </span>
           </label>
 
           <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
@@ -505,7 +716,9 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               required
               class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
             />
-            <span class="text-sm font-semibold text-white">Improved by less than 1%</span>
+            <span class="text-sm font-semibold text-white">
+              Improved by less than 1%
+            </span>
           </label>
 
           <label class="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-amber-400/60 cursor-pointer transition-colors">
@@ -516,7 +729,9 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               required
               class="w-4 h-4 text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
             />
-            <span class="text-sm font-semibold text-white">Declined compared to last year</span>
+            <span class="text-sm font-semibold text-white">
+              Declined compared to last year
+            </span>
           </label>
         </div>
 
@@ -532,24 +747,42 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
           >
             <span>Continue to Step 5</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
       </section>
 
       <!-- STEP 5: Return on Investment (ROI) & Payback -->
-      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="5">
+      <section
+        class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+        data-step="5"
+      >
         <div>
-          <h2 class="text-xl font-bold text-white">5. Return on Investment (ROI) & Payback</h2>
-          <p class="text-slate-400 text-xs mt-1">ROI and estimated payback period are calculated automatically.</p>
+          <h2 class="text-xl font-bold text-white">
+            5. Return on Investment (ROI) & Payback
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">
+            ROI and estimated payback period are calculated automatically.
+          </p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div class="space-y-1.5">
             <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Total Investment in Diversification (Rs.) <span class="text-rose-400">*</span>
+              Total Investment in Diversification (Rs.){" "}
+              <span class="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -560,12 +793,15 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               placeholder="e.g. 5,000,000"
               class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
             />
-            <span class="text-[11px] text-slate-400 block">Includes machinery, tech, R&D, and market launch.</span>
+            <span class="text-[11px] text-slate-400 block">
+              Includes machinery, tech, R&D, and market launch.
+            </span>
           </div>
 
           <div class="space-y-1.5">
             <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Operating Profit from Diversification (Rs.) <span class="text-rose-400">*</span>
+              Operating Profit from Diversification (Rs.){" "}
+              <span class="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -576,22 +812,42 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               placeholder="e.g. 1,000,000"
               class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
             />
-            <span class="text-[11px] text-slate-400 block">Use annualized operating profit if newly launched.</span>
+            <span class="text-[11px] text-slate-400 block">
+              Use annualized operating profit if newly launched.
+            </span>
           </div>
         </div>
 
         <!-- Metric Display Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-800">
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Return on Investment (ROI)</div>
-            <div id="live-roi-display" class="text-3xl font-extrabold font-mono text-emerald-400 mt-2">0.00%</div>
-            <span class="text-[11px] text-slate-500 mt-1 block">(Operating Profit ÷ Investment) × 100</span>
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Return on Investment (ROI)
+            </div>
+            <div
+              id="live-roi-display"
+              class="text-3xl font-extrabold font-mono text-emerald-400 mt-2"
+            >
+              0.00%
+            </div>
+            <span class="text-[11px] text-slate-500 mt-1 block">
+              (Operating Profit ÷ Investment) × 100
+            </span>
           </div>
 
           <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estimated Payback Period</div>
-            <div id="live-payback-display" class="text-3xl font-extrabold font-mono text-blue-400 mt-2">—</div>
-            <span class="text-[11px] text-slate-500 mt-1 block">Investment ÷ Operating Profit (Years)</span>
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Estimated Payback Period
+            </div>
+            <div
+              id="live-payback-display"
+              class="text-3xl font-extrabold font-mono text-blue-400 mt-2"
+            >
+              —
+            </div>
+            <span class="text-[11px] text-slate-500 mt-1 block">
+              Investment ÷ Operating Profit (Years)
+            </span>
           </div>
         </div>
 
@@ -607,24 +863,41 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
           >
             <span>Continue to Step 6</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
       </section>
 
       <!-- STEP 6: Declaration & Signature -->
-      <section class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6" data-step="6">
+      <section
+        class="wizard-step hidden bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+        data-step="6"
+      >
         <div>
-          <h2 class="text-xl font-bold text-white">6. Declaration & Biometric Signature</h2>
-          <p class="text-slate-400 text-xs mt-1">Review legal declaration and sign before final statutory submission.</p>
+          <h2 class="text-xl font-bold text-white">
+            6. Declaration & Biometric Signature
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">
+            Review legal declaration and sign before final statutory submission.
+          </p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div class="space-y-1.5">
             <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Authorized Signatory Name <span class="text-rose-400">*</span>
+              Name of Authorized Person <span class="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -637,7 +910,7 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
 
           <div class="space-y-1.5">
             <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-              Official Designation <span class="text-rose-400">*</span>
+              Designation / Title <span class="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -681,8 +954,13 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
               class="mt-1 w-4 h-4 rounded text-amber-500 bg-slate-800 border-slate-700 focus:ring-amber-400"
             />
             <span class="text-xs text-slate-300 leading-relaxed">
-              <strong class="text-white block font-semibold mb-1">I/We confirm and certify the declaration above.</strong>
-              All information provided is true, accurate, and relates exclusively to verified New Products to New Markets diversification and strategically linked long-term capital investments for the 2025/26 evaluation period.
+              <strong class="text-white block font-semibold mb-1">
+                I/We confirm and certify the declaration above.
+              </strong>
+              All information provided is true, accurate, and relates
+              exclusively to verified New Products to New Markets
+              diversification and strategically linked long-term capital
+              investments for the 2025/26 evaluation period.
             </span>
           </label>
         </div>
@@ -700,9 +978,25 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-sm flex items-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all"
           >
             <span id="submit-btn-text">Submit Official Application</span>
-            <svg id="submit-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            <svg
+              id="submit-spinner"
+              class="w-4 h-4 animate-spin hidden"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
             </svg>
           </button>
         </div>
@@ -716,44 +1010,58 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
   function initWizard() {
     let currentStep = 1;
     const totalSteps = 6;
-    const form = document.getElementById('award-form') as HTMLFormElement | null;
-    const errorBanner = document.getElementById('error-banner');
-    const errorMessage = document.getElementById('error-message');
-    const draftBanner = document.getElementById('draft-banner');
-    const clearDraftBtn = document.getElementById('clear-draft-btn');
-    const progressBar = document.getElementById('step-progress-bar');
-    const stepCounter = document.getElementById('step-counter');
-    const submitBtn = document.getElementById('submit-app-btn') as HTMLButtonElement | null;
-    const submitText = document.getElementById('submit-btn-text');
-    const submitSpinner = document.getElementById('submit-spinner');
+    const form = document.getElementById(
+      "award-form",
+    ) as HTMLFormElement | null;
+    const errorBanner = document.getElementById("error-banner");
+    const errorMessage = document.getElementById("error-message");
+    const draftBanner = document.getElementById("draft-banner");
+    const clearDraftBtn = document.getElementById("clear-draft-btn");
+    const progressBar = document.getElementById("step-progress-bar");
+    const stepCounter = document.getElementById("step-counter");
+    const submitBtn = document.getElementById(
+      "submit-app-btn",
+    ) as HTMLButtonElement | null;
+    const submitText = document.getElementById("submit-btn-text");
+    const submitSpinner = document.getElementById("submit-spinner");
 
     if (!form) return;
 
     // Set default date to today
-    const dateInput = document.getElementById('declaration_date') as HTMLInputElement | null;
+    const dateInput = document.getElementById(
+      "declaration_date",
+    ) as HTMLInputElement | null;
     if (dateInput && !dateInput.value) {
-      dateInput.value = new Date().toISOString().split('T')[0]!;
+      dateInput.value = new Date().toISOString().split("T")[0]!;
     }
 
     // --- Strict Numeric Formatting & Input Keystroke Helpers ---
     function formatWithCommas(val: string | number): string {
-      if (val === '' || val === null || val === undefined) return '';
+      if (val === "" || val === null || val === undefined) return "";
       const str = String(val);
-      const parts = str.split('.');
-      const intPart = parts[0]?.replace(/[^0-9]/g, '') || '';
-      const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      return parts.length > 1 ? `${formattedInt}.${parts.slice(1).join('').replace(/[^0-9]/g, '')}` : formattedInt;
+      const parts = str.split(".");
+      const intPart = parts[0]?.replace(/[^0-9]/g, "") || "";
+      const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return parts.length > 1
+        ? `${formattedInt}.${parts
+            .slice(1)
+            .join("")
+            .replace(/[^0-9]/g, "")}`
+        : formattedInt;
     }
 
     function parseNumber(val?: string | number): number {
-      if (val === '' || val === null || val === undefined) return 0;
-      const clean = String(val).replace(/,/g, '').trim();
+      if (val === "" || val === null || val === undefined) return 0;
+      const clean = String(val).replace(/,/g, "").trim();
       const n = parseFloat(clean);
       return isNaN(n) ? 0 : n;
     }
 
     function formatNumberDisplay(n: number): string {
-      return n.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return n.toLocaleString("en-LK", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     }
 
     // Attach strict numeric keystroke restrictions and comma formatting to an input
@@ -762,11 +1070,19 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       (input as any)._numericAttached = true;
 
       // Keydown filter: allow digits, one period, navigation, shortcuts
-      input.addEventListener('keydown', (e: KeyboardEvent) => {
+      input.addEventListener("keydown", (e: KeyboardEvent) => {
         const allowedKeys = [
-          'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
-          'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-          'Home', 'End'
+          "Backspace",
+          "Delete",
+          "Tab",
+          "Escape",
+          "Enter",
+          "ArrowLeft",
+          "ArrowRight",
+          "ArrowUp",
+          "ArrowDown",
+          "Home",
+          "End",
         ];
         if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
           return;
@@ -776,11 +1092,11 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
           return;
         }
         // Only one decimal point allowed (or allow if period is within selected text that will be replaced)
-        if (e.key === '.') {
+        if (e.key === ".") {
           const selStart = input.selectionStart || 0;
           const selEnd = input.selectionEnd || 0;
           const selectedText = input.value.substring(selStart, selEnd);
-          if (!input.value.includes('.') || selectedText.includes('.')) {
+          if (!input.value.includes(".") || selectedText.includes(".")) {
             return;
           }
         }
@@ -789,7 +1105,7 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       });
 
       // On input: format with commas while preserving caret position
-      input.addEventListener('input', () => {
+      input.addEventListener("input", () => {
         const orig = input.value;
         const selStart = input.selectionStart || 0;
 
@@ -800,11 +1116,13 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         }
 
         // Clean input: strip all non-digit and non-period characters, keep single period
-        const rawClean = orig.replace(/[^0-9.]/g, '');
-        const firstDot = rawClean.indexOf('.');
+        const rawClean = orig.replace(/[^0-9.]/g, "");
+        const firstDot = rawClean.indexOf(".");
         let sanitized = rawClean;
         if (firstDot !== -1) {
-          sanitized = rawClean.slice(0, firstDot + 1) + rawClean.slice(firstDot + 1).replace(/\./g, '');
+          sanitized =
+            rawClean.slice(0, firstDot + 1) +
+            rawClean.slice(firstDot + 1).replace(/\./g, "");
         }
 
         // Format with thousand commas
@@ -829,12 +1147,14 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
     // Attach to existing financial inputs
     function setupAllNumericInputs() {
       const inputs = [
-        document.getElementById('total_company_revenue') as HTMLInputElement | null,
-        document.getElementById('total_investment') as HTMLInputElement | null,
-        document.getElementById('operating_profit') as HTMLInputElement | null,
-        ...document.querySelectorAll('.rev-amount-input'),
+        document.getElementById(
+          "total_company_revenue",
+        ) as HTMLInputElement | null,
+        document.getElementById("total_investment") as HTMLInputElement | null,
+        document.getElementById("operating_profit") as HTMLInputElement | null,
+        ...document.querySelectorAll(".rev-amount-input"),
       ];
-      inputs.forEach(inp => {
+      inputs.forEach((inp) => {
         if (inp && inp instanceof HTMLInputElement) {
           attachNumericFilter(inp);
         }
@@ -843,21 +1163,78 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
 
     setupAllNumericInputs();
 
+    // Setup phone input numeric keystroke restrictions & validation
+    function setupPhoneValidation() {
+      const phoneInput = document.getElementById(
+        "contact_phone",
+      ) as HTMLInputElement | null;
+      const phoneErrorMsg = document.getElementById(
+        "phone-error-msg",
+      ) as HTMLElement | null;
+      if (!phoneInput) return;
+
+      // Keypress listener: block non-numeric keys (letters, spaces, special symbols)
+      phoneInput.addEventListener("keypress", (e: KeyboardEvent) => {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (!/^[0-9]$/.test(e.key)) {
+          e.preventDefault();
+        }
+      });
+
+      // beforeinput listener: block non-numeric input from virtual keyboards / insertions
+      phoneInput.addEventListener("beforeinput", (e: InputEvent) => {
+        if (e.data && !/^[0-9]+$/.test(e.data)) {
+          e.preventDefault();
+        }
+      });
+
+      // Paste listener: clean to digits only and cap at 10
+      phoneInput.addEventListener("paste", (e: ClipboardEvent) => {
+        e.preventDefault();
+        const text = e.clipboardData?.getData("text") || "";
+        const digits = text.replace(/[^0-9]/g, "");
+        const start = phoneInput.selectionStart || 0;
+        const end = phoneInput.selectionEnd || 0;
+        const current = phoneInput.value;
+        const nextVal = (
+          current.slice(0, start) +
+          digits +
+          current.slice(end)
+        ).slice(0, 10);
+        phoneInput.value = nextVal;
+        phoneInput.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+
+      // Input listener: sanitize value, clear error styling & hide helper
+      phoneInput.addEventListener("input", () => {
+        phoneInput.value = phoneInput.value.replace(/[^0-9]/g, "").slice(0, 10);
+        if (phoneInput.classList.contains("border-rose-500")) {
+          phoneInput.classList.remove("border-rose-500");
+          phoneInput.classList.add("border-slate-700");
+        }
+        if (phoneErrorMsg) {
+          phoneErrorMsg.classList.add("hidden");
+        }
+      });
+    }
+
+    setupPhoneValidation();
+
     // Step navigation
     function showStep(step: number) {
       currentStep = step;
-      document.querySelectorAll('.wizard-step').forEach(el => {
-        const s = parseInt(el.getAttribute('data-step') || '0', 10);
+      document.querySelectorAll(".wizard-step").forEach((el) => {
+        const s = parseInt(el.getAttribute("data-step") || "0", 10);
         if (s === step) {
-          el.classList.remove('hidden');
+          el.classList.remove("hidden");
         } else {
-          el.classList.add('hidden');
+          el.classList.add("hidden");
         }
       });
 
       // If Step 6 became visible, explicitly trigger canvas resize & redraw
       if (step === 6) {
-        if (typeof (window as any).resizeSignatureCanvas === 'function') {
+        if (typeof (window as any).resizeSignatureCanvas === "function") {
           (window as any).resizeSignatureCanvas();
         }
       }
@@ -871,90 +1248,179 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       }
 
       // Update step labels
-      document.querySelectorAll('.step-lbl').forEach(el => {
-        const s = parseInt(el.getAttribute('data-step') || '0', 10);
+      document.querySelectorAll(".step-lbl").forEach((el) => {
+        const s = parseInt(el.getAttribute("data-step") || "0", 10);
         if (s === step) {
-          el.className = 'step-lbl text-amber-400 font-bold';
+          el.className = "step-lbl text-amber-400 font-bold";
         } else if (s < step) {
-          el.className = 'step-lbl text-slate-300';
+          el.className = "step-lbl text-slate-300";
         } else {
-          el.className = 'step-lbl text-slate-500';
+          el.className = "step-lbl text-slate-500";
         }
       });
 
       // Hide error banner when switching steps
-      if (errorBanner) errorBanner.classList.add('hidden');
-      window.scrollTo({ top: 120, behavior: 'smooth' });
+      if (errorBanner) errorBanner.classList.add("hidden");
+      window.scrollTo({ top: 120, behavior: "smooth" });
     }
 
     function showError(msg: string) {
       if (errorMessage) errorMessage.textContent = msg;
-      if (errorBanner) errorBanner.classList.remove('hidden');
-      window.scrollTo({ top: 80, behavior: 'smooth' });
+      if (errorBanner) errorBanner.classList.remove("hidden");
+      window.scrollTo({ top: 80, behavior: "smooth" });
     }
 
     function highlightInputError(inp: HTMLElement | null) {
       if (!inp) return;
-      inp.classList.remove('border-slate-700');
-      inp.classList.add('border-rose-500');
-      inp.addEventListener('input', () => {
-        inp.classList.remove('border-rose-500');
-        inp.classList.add('border-slate-700');
-      }, { once: true });
+      inp.classList.remove("border-slate-700");
+      inp.classList.add("border-rose-500");
+      inp.addEventListener(
+        "input",
+        () => {
+          inp.classList.remove("border-rose-500");
+          inp.classList.add("border-slate-700");
+        },
+        { once: true },
+      );
     }
 
     // Step validation rules
     function validateStep(step: number): boolean {
       if (step === 1) {
-        const companyName = (form?.elements.namedItem('company_name') as HTMLInputElement)?.value.trim();
-        const nature = (form?.elements.namedItem('nature_operations') as HTMLSelectElement)?.value;
-        const contact = (form?.elements.namedItem('contact_name_designation') as HTMLInputElement)?.value.trim();
-        const email = (form?.elements.namedItem('contact_email') as HTMLInputElement)?.value.trim();
-        const phone = (form?.elements.namedItem('contact_phone') as HTMLInputElement)?.value.trim();
+        const companyName = (
+          form?.elements.namedItem("company_name") as HTMLInputElement
+        )?.value.trim();
+        const nature = (
+          form?.elements.namedItem("nature_operations") as HTMLSelectElement
+        )?.value;
+        const contactName = (
+          form?.elements.namedItem("contact_name") as HTMLInputElement
+        )?.value.trim();
+        const contactDesignation = (
+          form?.elements.namedItem("contact_designation") as HTMLInputElement
+        )?.value.trim();
+        const email = (
+          form?.elements.namedItem("contact_email") as HTMLInputElement
+        )?.value.trim();
+        const phoneEl =
+          (document.getElementById(
+            "contact_phone",
+          ) as HTMLInputElement | null) ||
+          (form?.elements.namedItem(
+            "contact_phone",
+          ) as HTMLInputElement | null);
+        const phone = phoneEl?.value.trim() || "";
+        const phoneErrorMsg = document.getElementById(
+          "phone-error-msg",
+        ) as HTMLElement | null;
 
-        if (!companyName) { showError('Company Name is required.'); return false; }
-        if (!nature) { showError('Please select the Nature of Operations.'); return false; }
-        if (!contact) { showError('Contact Person Name & Designation is required.'); return false; }
-        if (!email || !email.includes('@')) { showError('A valid Contact Email is required.'); return false; }
-        if (!phone) { showError('Telephone number is required.'); return false; }
+        if (!companyName) {
+          showError("Company Name is required.");
+          return false;
+        }
+        if (!nature) {
+          showError("Please select the Nature of Operations.");
+          return false;
+        }
+        if (!contactName) {
+          showError("Contact Person Name is required.");
+          return false;
+        }
+        if (!contactDesignation) {
+          showError("Designation is required.");
+          return false;
+        }
+        if (!email || !email.includes("@")) {
+          showError("A valid Contact Email is required.");
+          return false;
+        }
+
+        // Strict Sri Lankan Phone Number Format Validation (Regex)
+        // 10 digits starting with 0 followed by mobile prefixes (70-72, 74-78) or landlines (11, 21-27, 31-38, 41/45/47, 51-57, 63/65-67, 81, 91)
+        const SRI_LANKAN_PHONE_REGEX =
+          /^0(7[0-24-8]|11|2[1-7]|3[1-8]|4[157]|5[12457]|6[35-7]|81|91)[0-9]{7}$/;
+        if (
+          !phone ||
+          phone.length !== 10 ||
+          !SRI_LANKAN_PHONE_REGEX.test(phone)
+        ) {
+          showError(
+            "Please enter a valid 10-digit Sri Lankan phone number (e.g., 07XXXXXXXX)",
+          );
+          if (phoneEl) {
+            phoneEl.classList.remove("border-slate-700");
+            phoneEl.classList.add("border-rose-500");
+            phoneEl.focus();
+          }
+          if (phoneErrorMsg) {
+            phoneErrorMsg.classList.remove("hidden");
+          }
+          return false;
+        }
+
+        // Clear error styling on phone if valid
+        if (phoneEl) {
+          phoneEl.classList.remove("border-rose-500");
+          phoneEl.classList.add("border-slate-700");
+        }
+        if (phoneErrorMsg) {
+          phoneErrorMsg.classList.add("hidden");
+        }
+
         return true;
       }
 
       if (step === 2) {
-        const newProducts = (form?.elements.namedItem('new_products_services') as HTMLInputElement)?.checked;
-        const newMarket = (form?.elements.namedItem('new_market_entered') as HTMLInputElement)?.checked;
+        const newProducts = (
+          form?.elements.namedItem("new_products_services") as HTMLInputElement
+        )?.checked;
+        const newMarket = (
+          form?.elements.namedItem("new_market_entered") as HTMLInputElement
+        )?.checked;
         if (!newProducts || !newMarket) {
-          showError('Both mandatory diversification conditions (New Products & New Market) must be confirmed.');
+          showError(
+            "Both mandatory diversification conditions (New Products & New Market) must be confirmed.",
+          );
           return false;
         }
 
         // Validate products repeater
-        const productRows = form?.querySelectorAll('#products-list .product-row') as NodeListOf<HTMLElement>;
+        const productRows = form?.querySelectorAll(
+          "#products-list .product-row",
+        ) as NodeListOf<HTMLElement>;
 
         // Clear existing error borders on product inputs
-        productRows.forEach(row => {
-          row.querySelectorAll('input').forEach(inp => {
-            inp.classList.remove('border-rose-500');
-            inp.classList.add('border-slate-700');
+        productRows.forEach((row) => {
+          row.querySelectorAll("input").forEach((inp) => {
+            inp.classList.remove("border-rose-500");
+            inp.classList.add("border-slate-700");
           });
         });
 
         if (!productRows || productRows.length === 0) {
-          showError('Please add at least one product/service with a description.');
+          showError(
+            "Please add at least one product/service with a description.",
+          );
           return false;
         }
 
         for (let i = 0; i < productRows.length; i++) {
           const row = productRows[i]!;
-          const nameInp = row.querySelector('input[name*="[name]"]') as HTMLInputElement | null;
-          const descInp = row.querySelector('input[name*="[description]"]') as HTMLInputElement | null;
+          const nameInp = row.querySelector(
+            'input[name*="[name]"]',
+          ) as HTMLInputElement | null;
+          const descInp = row.querySelector(
+            'input[name*="[description]"]',
+          ) as HTMLInputElement | null;
 
-          const nameVal = nameInp?.value.trim() || '';
-          const descVal = descInp?.value.trim() || '';
+          const nameVal = nameInp?.value.trim() || "";
+          const descVal = descInp?.value.trim() || "";
 
           // If row is completely empty
           if (!nameVal && !descVal) {
-            showError('Please add at least one product/service with a description.');
+            showError(
+              "Please add at least one product/service with a description.",
+            );
             if (nameInp) highlightInputError(nameInp);
             if (descInp) highlightInputError(descInp);
             nameInp?.focus();
@@ -963,7 +1429,9 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
 
           // If name is empty
           if (!nameVal) {
-            showError('Please add at least one product/service with a description.');
+            showError(
+              "Please add at least one product/service with a description.",
+            );
             if (nameInp) {
               highlightInputError(nameInp);
               nameInp.focus();
@@ -973,7 +1441,9 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
 
           // If description is empty
           if (!descVal) {
-            showError('Please add at least one product/service with a description.');
+            showError(
+              "Please add at least one product/service with a description.",
+            );
             if (descInp) {
               highlightInputError(descInp);
               descInp.focus();
@@ -982,10 +1452,14 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
           }
         }
 
-        const marketDetails = (form?.elements.namedItem('new_market_details') as HTMLTextAreaElement)?.value.trim();
+        const marketDetails = (
+          form?.elements.namedItem("new_market_details") as HTMLTextAreaElement
+        )?.value.trim();
         if (!marketDetails) {
-          showError('Please describe the new market entered.');
-          const marketInp = form?.elements.namedItem('new_market_details') as HTMLTextAreaElement | null;
+          showError("Please describe the new market entered.");
+          const marketInp = form?.elements.namedItem(
+            "new_market_details",
+          ) as HTMLTextAreaElement | null;
           if (marketInp) {
             highlightInputError(marketInp);
             marketInp.focus();
@@ -996,33 +1470,51 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       }
 
       if (step === 3) {
-        const totalRevInp = form?.elements.namedItem('total_company_revenue') as HTMLInputElement | null;
+        const totalRevInp = form?.elements.namedItem(
+          "total_company_revenue",
+        ) as HTMLInputElement | null;
         const totalRev = parseNumber(totalRevInp?.value);
         if (totalRev <= 0) {
-          showError('Total Company Revenue (Audited) is required and must be greater than zero.');
+          showError(
+            "Total Company Revenue (Audited) is required and must be greater than zero.",
+          );
           totalRevInp?.focus();
           return false;
         }
 
-        const revRows = form?.querySelectorAll('.revenue-row') as NodeListOf<HTMLElement>;
+        const revRows = form?.querySelectorAll(
+          ".revenue-row",
+        ) as NodeListOf<HTMLElement>;
         let hasValidRow = false;
         for (let i = 0; i < revRows.length; i++) {
           const row = revRows[i]!;
-          const actInp = row.querySelector('input[name*="[activity]"]') as HTMLInputElement | null;
-          const amtInp = row.querySelector('.rev-amount-input') as HTMLInputElement | null;
-          const actVal = actInp?.value.trim() || '';
+          const actInp = row.querySelector(
+            'input[name*="[activity]"]',
+          ) as HTMLInputElement | null;
+          const amtInp = row.querySelector(
+            ".rev-amount-input",
+          ) as HTMLInputElement | null;
+          const actVal = actInp?.value.trim() || "";
           const amtVal = parseNumber(amtInp?.value);
 
           if (!actVal && amtVal <= 0) {
             continue;
           }
           if (!actVal) {
-            showError('Please enter the Business Activity description for row ' + (i + 1) + '.');
+            showError(
+              "Please enter the Business Activity description for row " +
+                (i + 1) +
+                ".",
+            );
             actInp?.focus();
             return false;
           }
           if (amtVal <= 0) {
-            showError('Please enter a valid numeric revenue amount for row ' + (i + 1) + '.');
+            showError(
+              "Please enter a valid numeric revenue amount for row " +
+                (i + 1) +
+                ".",
+            );
             amtInp?.focus();
             return false;
           }
@@ -1030,34 +1522,48 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         }
 
         if (!hasValidRow) {
-          showError('Please add at least one diversified business activity with revenue.');
+          showError(
+            "Please add at least one diversified business activity with revenue.",
+          );
           return false;
         }
         return true;
       }
 
       if (step === 4) {
-        const option = form?.querySelector('input[name="gross_profit_margin_option"]:checked');
+        const option = form?.querySelector(
+          'input[name="gross_profit_margin_option"]:checked',
+        );
         if (!option) {
-          showError('Please select a Gross Profit Margin Improvement category.');
+          showError(
+            "Please select a Gross Profit Margin Improvement category.",
+          );
           return false;
         }
         return true;
       }
 
       if (step === 5) {
-        const invInp = form?.elements.namedItem('total_investment') as HTMLInputElement | null;
-        const profitInp = form?.elements.namedItem('operating_profit') as HTMLInputElement | null;
+        const invInp = form?.elements.namedItem(
+          "total_investment",
+        ) as HTMLInputElement | null;
+        const profitInp = form?.elements.namedItem(
+          "operating_profit",
+        ) as HTMLInputElement | null;
         const inv = parseNumber(invInp?.value);
         const profit = parseNumber(profitInp?.value);
 
         if (!invInp?.value.trim() || inv <= 0) {
-          showError('Total Investment in Diversification is required and must be greater than zero.');
+          showError(
+            "Total Investment in Diversification is required and must be greater than zero.",
+          );
           invInp?.focus();
           return false;
         }
         if (!profitInp?.value.trim() || profit < 0) {
-          showError('Operating Profit from Diversification is required (cannot be negative).');
+          showError(
+            "Operating Profit from Diversification is required (cannot be negative).",
+          );
           profitInp?.focus();
           return false;
         }
@@ -1065,23 +1571,51 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       }
 
       if (step === 6) {
-        const declName = (form?.elements.namedItem('declaration_name') as HTMLInputElement)?.value.trim();
-        const declDesig = (form?.elements.namedItem('declaration_designation') as HTMLInputElement)?.value.trim();
-        const declDate = (form?.elements.namedItem('declaration_date') as HTMLInputElement)?.value.trim();
-        const confirmed = (form?.elements.namedItem('declaration_confirmed') as HTMLInputElement)?.checked;
-        const signature = (form?.elements.namedItem('signature_data') as HTMLInputElement)?.value;
-        const isBlank = typeof (window as any).isSignatureBlank === 'function' ? (window as any).isSignatureBlank() : (!signature || signature.length < 50);
+        const declName = (
+          form?.elements.namedItem("declaration_name") as HTMLInputElement
+        )?.value.trim();
+        const declDesig = (
+          form?.elements.namedItem(
+            "declaration_designation",
+          ) as HTMLInputElement
+        )?.value.trim();
+        const declDate = (
+          form?.elements.namedItem("declaration_date") as HTMLInputElement
+        )?.value.trim();
+        const confirmed = (
+          form?.elements.namedItem("declaration_confirmed") as HTMLInputElement
+        )?.checked;
+        const signature = (
+          form?.elements.namedItem("signature_data") as HTMLInputElement
+        )?.value;
+        const isBlank =
+          typeof (window as any).isSignatureBlank === "function"
+            ? (window as any).isSignatureBlank()
+            : !signature || signature.length < 50;
 
-        if (!declName) { showError('Authorized Signatory Name is required.'); return false; }
-        if (!declDesig) { showError('Official Designation is required.'); return false; }
-        if (!declDate) { showError('Date of Declaration is required.'); return false; }
+        if (!declName) {
+          showError("Name of Authorized Person is required.");
+          return false;
+        }
+        if (!declDesig) {
+          showError("Designation / Title is required.");
+          return false;
+        }
+        if (!declDate) {
+          showError("Date of Declaration is required.");
+          return false;
+        }
         if (isBlank) {
-          showError('Digital biometric signature is required. Please sign inside the designated box.');
-          document.getElementById('sig-canvas')?.focus();
+          showError(
+            "Digital biometric signature is required. Please sign inside the designated box.",
+          );
+          document.getElementById("sig-canvas")?.focus();
           return false;
         }
         if (!confirmed) {
-          showError('Please confirm the legal declaration checkbox before submitting.');
+          showError(
+            "Please confirm the legal declaration checkbox before submitting.",
+          );
           return false;
         }
         return true;
@@ -1093,33 +1627,49 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
     // Live Calculations
     function recalculateLive() {
       // Step 3 Live Calculations
-      const totalRev = parseNumber((form?.elements.namedItem('total_company_revenue') as HTMLInputElement)?.value);
-      const revRows = form?.querySelectorAll('.revenue-row') as NodeListOf<HTMLElement>;
+      const totalRev = parseNumber(
+        (form?.elements.namedItem("total_company_revenue") as HTMLInputElement)
+          ?.value,
+      );
+      const revRows = form?.querySelectorAll(
+        ".revenue-row",
+      ) as NodeListOf<HTMLElement>;
       let divTotal = 0;
 
-      revRows.forEach(row => {
-        const amtInput = row.querySelector('.rev-amount-input') as HTMLInputElement | null;
-        const pctBadge = row.querySelector('.row-pct-badge') as HTMLElement | null;
+      revRows.forEach((row) => {
+        const amtInput = row.querySelector(
+          ".rev-amount-input",
+        ) as HTMLInputElement | null;
+        const pctBadge = row.querySelector(
+          ".row-pct-badge",
+        ) as HTMLElement | null;
         const amt = parseNumber(amtInput?.value);
         divTotal += amt;
         const pct = totalRev > 0 ? (amt / totalRev) * 100 : 0;
         if (pctBadge) pctBadge.textContent = `${pct.toFixed(2)}%`;
       });
 
-      const liveTotalRev = document.getElementById('live-total-revenue');
-      const liveCombPct = document.getElementById('live-combined-percent');
-      if (liveTotalRev) liveTotalRev.textContent = `Rs. ${formatNumberDisplay(divTotal)}`;
+      const liveTotalRev = document.getElementById("live-total-revenue");
+      const liveCombPct = document.getElementById("live-combined-percent");
+      if (liveTotalRev)
+        liveTotalRev.textContent = `Rs. ${formatNumberDisplay(divTotal)}`;
       if (liveCombPct) {
         const combPct = totalRev > 0 ? (divTotal / totalRev) * 100 : 0;
         liveCombPct.textContent = `${combPct.toFixed(2)}%`;
       }
 
       // Step 5 Live Calculations (ROI & Payback)
-      const inv = parseNumber((form?.elements.namedItem('total_investment') as HTMLInputElement)?.value);
-      const profit = parseNumber((form?.elements.namedItem('operating_profit') as HTMLInputElement)?.value);
+      const inv = parseNumber(
+        (form?.elements.namedItem("total_investment") as HTMLInputElement)
+          ?.value,
+      );
+      const profit = parseNumber(
+        (form?.elements.namedItem("operating_profit") as HTMLInputElement)
+          ?.value,
+      );
 
-      const roiDisplay = document.getElementById('live-roi-display');
-      const paybackDisplay = document.getElementById('live-payback-display');
+      const roiDisplay = document.getElementById("live-roi-display");
+      const paybackDisplay = document.getElementById("live-payback-display");
 
       if (roiDisplay) {
         const roi = inv > 0 ? (profit / inv) * 100 : 0;
@@ -1131,25 +1681,26 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
           const payback = inv / profit;
           paybackDisplay.textContent = `${payback.toFixed(2)} Years`;
         } else {
-          paybackDisplay.textContent = '—';
+          paybackDisplay.textContent = "—";
         }
       }
     }
 
     // General input listener
-    form.addEventListener('input', () => {
+    form.addEventListener("input", () => {
       recalculateLive();
       saveDraft();
     });
 
     // Add/Remove Products Repeater
-    const addProductBtn = document.getElementById('add-product-btn');
-    const productsList = document.getElementById('products-list');
-    addProductBtn?.addEventListener('click', () => {
+    const addProductBtn = document.getElementById("add-product-btn");
+    const productsList = document.getElementById("products-list");
+    addProductBtn?.addEventListener("click", () => {
       if (!productsList) return;
-      const count = productsList.querySelectorAll('.product-row').length;
-      const row = document.createElement('div');
-      row.className = 'product-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center animate-fade-in';
+      const count = productsList.querySelectorAll(".product-row").length;
+      const row = document.createElement("div");
+      row.className =
+        "product-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center animate-fade-in";
       row.innerHTML = `
         <span class="w-6 h-6 rounded-full bg-slate-800 text-amber-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
           ${count + 1}
@@ -1177,18 +1728,19 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         </button>
       `;
       productsList.appendChild(row);
-      updateRemoveButtons(productsList, '.product-row');
+      updateRemoveButtons(productsList, ".product-row");
       saveDraft();
     });
 
     // Add/Remove Revenue Repeater
-    const addRevenueBtn = document.getElementById('add-revenue-btn');
-    const revenueList = document.getElementById('revenue-list');
-    addRevenueBtn?.addEventListener('click', () => {
+    const addRevenueBtn = document.getElementById("add-revenue-btn");
+    const revenueList = document.getElementById("revenue-list");
+    addRevenueBtn?.addEventListener("click", () => {
       if (!revenueList) return;
-      const count = revenueList.querySelectorAll('.revenue-row').length;
-      const row = document.createElement('div');
-      row.className = 'revenue-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center animate-fade-in';
+      const count = revenueList.querySelectorAll(".revenue-row").length;
+      const row = document.createElement("div");
+      row.className =
+        "revenue-row bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center animate-fade-in";
       row.innerHTML = `
         <span class="w-6 h-6 rounded-full bg-slate-800 text-amber-400 font-mono text-xs font-bold flex items-center justify-center shrink-0">
           ${count + 1}
@@ -1220,10 +1772,12 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         </button>
       `;
       revenueList.appendChild(row);
-      updateRemoveButtons(revenueList, '.revenue-row');
+      updateRemoveButtons(revenueList, ".revenue-row");
 
       // Attach strict numeric filter to new input
-      const newAmtInp = row.querySelector('.rev-amount-input') as HTMLInputElement | null;
+      const newAmtInp = row.querySelector(
+        ".rev-amount-input",
+      ) as HTMLInputElement | null;
       if (newAmtInp) attachNumericFilter(newAmtInp);
 
       recalculateLive();
@@ -1231,14 +1785,17 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
     });
 
     // Delegate row removal
-    document.addEventListener('click', e => {
+    document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
-      if (target.classList.contains('remove-row-btn')) {
-        const row = target.closest('.product-row, .revenue-row');
+      if (target.classList.contains("remove-row-btn")) {
+        const row = target.closest(".product-row, .revenue-row");
         const container = row?.parentElement;
         row?.remove();
         if (container) {
-          updateRemoveButtons(container, container.id === 'products-list' ? '.product-row' : '.revenue-row');
+          updateRemoveButtons(
+            container,
+            container.id === "products-list" ? ".product-row" : ".revenue-row",
+          );
         }
         recalculateLive();
         saveDraft();
@@ -1248,30 +1805,30 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
     function updateRemoveButtons(container: HTMLElement, selector: string) {
       const rows = container.querySelectorAll(selector);
       rows.forEach((r, idx) => {
-        const numSpan = r.querySelector('span');
+        const numSpan = r.querySelector("span");
         if (numSpan) numSpan.textContent = String(idx + 1);
-        const rmBtn = r.querySelector('.remove-row-btn');
+        const rmBtn = r.querySelector(".remove-row-btn");
         if (rmBtn) {
           if (rows.length > 1) {
-            rmBtn.classList.remove('hidden');
+            rmBtn.classList.remove("hidden");
           } else {
-            rmBtn.classList.add('hidden');
+            rmBtn.classList.add("hidden");
           }
         }
       });
     }
 
     // Step button handlers
-    document.querySelectorAll('.next-step-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+    document.querySelectorAll(".next-step-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
         if (validateStep(currentStep)) {
           showStep(currentStep + 1);
         }
       });
     });
 
-    document.querySelectorAll('.prev-step-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+    document.querySelectorAll(".prev-step-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
         if (currentStep > 1) {
           showStep(currentStep - 1);
         }
@@ -1279,14 +1836,14 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
     });
 
     // LocalStorage Draft Management
-    const DRAFT_KEY = 'bdc_award_draft_2025';
+    const DRAFT_KEY = "bdc_award_draft_2025";
 
     function saveDraft() {
       try {
         const formData = new FormData(form);
         const obj: Record<string, any> = {};
         formData.forEach((val, key) => {
-          if (key === 'signature_data' || key.includes('files')) return;
+          if (key === "signature_data" || key.includes("files")) return;
           obj[key] = val;
         });
         localStorage.setItem(DRAFT_KEY, JSON.stringify(obj));
@@ -1300,40 +1857,69 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         const data = JSON.parse(raw);
         let restoredCount = 0;
 
-        Object.keys(data).forEach(key => {
+        Object.keys(data).forEach((key) => {
           const el = form?.elements.namedItem(key);
           if (el) {
             if (el instanceof RadioNodeList) {
               el.value = data[key];
             } else if (el instanceof HTMLInputElement) {
-              if (el.type === 'checkbox') {
-                el.checked = data[key] === 'true' || data[key] === true;
+              if (el.type === "checkbox") {
+                el.checked = data[key] === "true" || data[key] === true;
               } else {
                 // Format numeric inputs with commas upon restore
-                if (['total_company_revenue', 'total_investment', 'operating_profit'].includes(key) || key.includes('[revenue]')) {
+                if (
+                  [
+                    "total_company_revenue",
+                    "total_investment",
+                    "operating_profit",
+                  ].includes(key) ||
+                  key.includes("[revenue]")
+                ) {
                   el.value = formatWithCommas(data[key]);
                 } else {
                   el.value = data[key];
                 }
               }
-            } else if (el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) {
+            } else if (
+              el instanceof HTMLSelectElement ||
+              el instanceof HTMLTextAreaElement
+            ) {
               el.value = data[key];
             }
             restoredCount++;
           }
         });
 
+        // Migrate legacy draft combined field if present
+        if (data["contact_name_designation"] && !data["contact_name"]) {
+          const parts = String(data["contact_name_designation"]).split("-");
+          const cName = form?.elements.namedItem(
+            "contact_name",
+          ) as HTMLInputElement | null;
+          const cDesig = form?.elements.namedItem(
+            "contact_designation",
+          ) as HTMLInputElement | null;
+          if (cName && !cName.value) {
+            cName.value = parts[0]?.trim() || "";
+            restoredCount++;
+          }
+          if (cDesig && !cDesig.value) {
+            cDesig.value = parts.slice(1).join("-").trim() || "";
+            restoredCount++;
+          }
+        }
+
         if (restoredCount > 0 && draftBanner) {
-          draftBanner.classList.remove('hidden');
+          draftBanner.classList.remove("hidden");
           setupAllNumericInputs();
           recalculateLive();
         }
       } catch {}
     }
 
-    clearDraftBtn?.addEventListener('click', () => {
+    clearDraftBtn?.addEventListener("click", () => {
       localStorage.removeItem(DRAFT_KEY);
-      if (draftBanner) draftBanner.classList.add('hidden');
+      if (draftBanner) draftBanner.classList.add("hidden");
       form.reset();
       recalculateLive();
     });
@@ -1341,14 +1927,23 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
     restoreDraft();
 
     // Form Submission Handler
-    form.addEventListener('submit', async e => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       // Ensure signature canvas exports latest data before validating Step 6
-      const sigPad = document.getElementById('sig-canvas') as HTMLCanvasElement | null;
-      const sigInput = document.getElementById('signature_data') as HTMLInputElement | null;
-      if (sigPad && sigInput && typeof (window as any).isSignatureBlank === 'function' && !(window as any).isSignatureBlank()) {
-        sigInput.value = sigPad.toDataURL('image/png');
+      const sigPad = document.getElementById(
+        "sig-canvas",
+      ) as HTMLCanvasElement | null;
+      const sigInput = document.getElementById(
+        "signature_data",
+      ) as HTMLInputElement | null;
+      if (
+        sigPad &&
+        sigInput &&
+        typeof (window as any).isSignatureBlank === "function" &&
+        !(window as any).isSignatureBlank()
+      ) {
+        sigInput.value = sigPad.toDataURL("image/png");
       }
 
       if (!validateStep(6)) {
@@ -1356,14 +1951,18 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
       }
 
       // Check file attachments payload limits
-      const fileInputs = form.querySelectorAll('input[type="file"]') as NodeListOf<HTMLInputElement>;
+      const fileInputs = form.querySelectorAll(
+        'input[type="file"]',
+      ) as NodeListOf<HTMLInputElement>;
       let totalFileSize = 0;
       for (const fi of fileInputs) {
         if (fi.files) {
           for (let i = 0; i < fi.files.length; i++) {
             const file = fi.files[i]!;
             if (file.size > 5 * 1024 * 1024) {
-              showError(`File "${file.name}" exceeds the maximum allowed size of 5 MB.`);
+              showError(
+                `File "${file.name}" exceeds the maximum allowed size of 5 MB.`,
+              );
               return;
             }
             totalFileSize += file.size;
@@ -1371,37 +1970,48 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         }
       }
       if (totalFileSize > 25 * 1024 * 1024) {
-        showError('Total uploaded files exceed the maximum allowed payload limit (25 MB).');
+        showError(
+          "Total uploaded files exceed the maximum allowed payload limit (25 MB).",
+        );
         return;
       }
 
       // Enter loading state
       if (submitBtn) submitBtn.disabled = true;
-      if (submitText) submitText.textContent = 'Submitting & Generating Dossier...';
-      if (submitSpinner) submitSpinner.classList.remove('hidden');
-      if (errorBanner) errorBanner.classList.add('hidden');
+      if (submitText)
+        submitText.textContent = "Submitting & Generating Dossier...";
+      if (submitSpinner) submitSpinner.classList.remove("hidden");
+      if (errorBanner) errorBanner.classList.add("hidden");
 
       function resetSubmitBtn() {
         if (submitBtn) submitBtn.disabled = false;
-        if (submitText) submitText.textContent = 'Submit Official Application';
-        if (submitSpinner) submitSpinner.classList.add('hidden');
+        if (submitText) submitText.textContent = "Submit Official Application";
+        if (submitSpinner) submitSpinner.classList.add("hidden");
       }
 
       try {
         const formData = new FormData(form);
 
         // Sanitize numeric fields: strip commas before sending payload to backend
-        ['total_company_revenue', 'total_investment', 'operating_profit'].forEach(k => {
+        [
+          "total_company_revenue",
+          "total_investment",
+          "operating_profit",
+        ].forEach((k) => {
           const val = formData.get(k);
-          if (typeof val === 'string') {
-            formData.set(k, val.replace(/,/g, '').trim());
+          if (typeof val === "string") {
+            formData.set(k, val.replace(/,/g, "").trim());
           }
         });
 
         // Strip commas from repeater revenue rows
         for (const [k, val] of Array.from(formData.entries())) {
-          if (k.startsWith('revenue[') && k.endsWith('][revenue]') && typeof val === 'string') {
-            formData.set(k, val.replace(/,/g, '').trim());
+          if (
+            k.startsWith("revenue[") &&
+            k.endsWith("][revenue]") &&
+            typeof val === "string"
+          ) {
+            formData.set(k, val.replace(/,/g, "").trim());
           }
         }
 
@@ -1412,18 +2022,24 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
         let res: Response;
         try {
           // Use relative endpoint to avoid cross-origin protocol/port issues
-          res = await fetch('/api/submit', {
-            method: 'POST',
+          res = await fetch("/api/submit", {
+            method: "POST",
             body: formData,
             signal: controller.signal,
           });
         } catch (fetchErr: any) {
           clearTimeout(timeoutId);
-          console.error('[Submit Network Exception]', fetchErr);
-          if (fetchErr?.name === 'AbortError') {
-            showError('Submission request timed out. Please check your network connection and file attachments.');
+          console.error("[Submit Network Exception]", fetchErr);
+          if (fetchErr?.name === "AbortError") {
+            showError(
+              "Submission request timed out. Please check your network connection and file attachments.",
+            );
           } else {
-            showError(fetchErr?.message ? `Network error: ${fetchErr.message}` : 'A network error occurred while submitting. Please check your connection.');
+            showError(
+              fetchErr?.message
+                ? `Network error: ${fetchErr.message}`
+                : "A network error occurred while submitting. Please check your connection.",
+            );
           }
           resetSubmitBtn();
           return;
@@ -1436,9 +2052,12 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
           try {
             data = await res.json();
           } catch (jsonErr) {
-            console.error('[JSON Parse Error on OK response]', jsonErr);
-            const rawText = await res.text().catch(() => '');
-            showError('Invalid response from server: ' + (rawText ? rawText.slice(0, 150) : 'Malformed JSON'));
+            console.error("[JSON Parse Error on OK response]", jsonErr);
+            const rawText = await res.text().catch(() => "");
+            showError(
+              "Invalid response from server: " +
+                (rawText ? rawText.slice(0, 150) : "Malformed JSON"),
+            );
             resetSubmitBtn();
             return;
           }
@@ -1448,62 +2067,95 @@ import SignaturePad from '@/components/signature/SignaturePad.astro';
             localStorage.removeItem(DRAFT_KEY);
 
             // Store submission data in sessionStorage for success page
-            sessionStorage.setItem('submitted_reference', data.reference || '');
-            sessionStorage.setItem('submitted_email', data.email || '');
-            sessionStorage.setItem('submitted_download_url', data.downloadUrl || '');
-            sessionStorage.setItem('submitted_pdf_ready', data.pdfReady ? '1' : '0');
-            sessionStorage.setItem('submitted_email_sent', data.emailSent ? '1' : '0');
+            sessionStorage.setItem("submitted_reference", data.reference || "");
+            sessionStorage.setItem("submitted_email", data.email || "");
+            sessionStorage.setItem(
+              "submitted_download_url",
+              data.downloadUrl || "",
+            );
+            sessionStorage.setItem(
+              "submitted_pdf_ready",
+              data.pdfReady ? "1" : "0",
+            );
+            sessionStorage.setItem(
+              "submitted_email_sent",
+              data.emailSent ? "1" : "0",
+            );
 
             window.location.href = `/success?ref=${encodeURIComponent(data.reference)}`;
           } else {
-            showError(data?.message || 'Submission failed. Please check your details.');
+            showError(
+              data?.message || "Submission failed. Please check your details.",
+            );
             resetSubmitBtn();
           }
         } else {
           // Server returned error (e.g. 422, 429, 500) or unformatted HTML/PHP fatal error
-          let errMsg = '';
-          const contentType = res.headers.get('content-type') || '';
-          if (contentType.includes('application/json')) {
+          let errMsg = "";
+          const contentType = res.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
             try {
               const errData = await res.json();
-              errMsg = errData?.error || errData?.message || (errData?.errors ? Object.values(errData.errors).flat().join(', ') : '');
+              errMsg =
+                errData?.error ||
+                errData?.message ||
+                (errData?.errors
+                  ? Object.values(errData.errors).flat().join(", ")
+                  : "");
               if (errData?.field) {
                 const f = String(errData.field);
-                if (f.includes('company') || f.includes('contact') || f.includes('operations')) showStep(1);
-                else if (f.includes('product') || f.includes('market')) showStep(2);
-                else if (f.includes('revenue')) showStep(3);
-                else if (f.includes('gross') || f.includes('margin')) showStep(4);
-                else if (f.includes('investment') || f.includes('profit')) showStep(5);
-                else if (f.includes('declaration') || f.includes('signature')) showStep(6);
+                if (
+                  f.includes("company") ||
+                  f.includes("contact") ||
+                  f.includes("operations")
+                )
+                  showStep(1);
+                else if (f.includes("product") || f.includes("market"))
+                  showStep(2);
+                else if (f.includes("revenue")) showStep(3);
+                else if (f.includes("gross") || f.includes("margin"))
+                  showStep(4);
+                else if (f.includes("investment") || f.includes("profit"))
+                  showStep(5);
+                else if (f.includes("declaration") || f.includes("signature"))
+                  showStep(6);
               }
             } catch {
-              errMsg = await res.text().catch(() => '');
+              errMsg = await res.text().catch(() => "");
             }
           } else {
-            errMsg = await res.text().catch(() => '');
+            errMsg = await res.text().catch(() => "");
           }
 
           if (!errMsg) {
-            errMsg = `Server error (Status: ${res.status} ${res.statusText || ''})`;
+            errMsg = `Server error (Status: ${res.status} ${res.statusText || ""})`;
           }
           // Strip any HTML tags from error message
-          const cleanErrMsg = errMsg.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
-          console.error('[Submission Server Error]', res.status, cleanErrMsg);
-          showError(cleanErrMsg.slice(0, 300) || `Server error (${res.status})`);
+          const cleanErrMsg = errMsg
+            .replace(/<[^>]*>?/gm, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+          console.error("[Submission Server Error]", res.status, cleanErrMsg);
+          showError(
+            cleanErrMsg.slice(0, 300) || `Server error (${res.status})`,
+          );
           resetSubmitBtn();
         }
       } catch (err: any) {
-        console.error('[Submit Handler Error]', err);
-        showError(err?.message ? `Submission Error: ${err.message}` : 'An unexpected error occurred while submitting. Please check your details.');
+        console.error("[Submit Handler Error]", err);
+        showError(
+          err?.message
+            ? `Submission Error: ${err.message}`
+            : "An unexpected error occurred while submitting. Please check your details.",
+        );
         resetSubmitBtn();
       }
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWizard);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initWizard);
   } else {
     initWizard();
   }
 </script>
-
