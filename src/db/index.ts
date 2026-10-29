@@ -1,11 +1,12 @@
 import 'dotenv/config';
 import mysql from 'mysql2/promise';
 import { drizzle } from 'drizzle-orm/mysql2';
+import { eq } from 'drizzle-orm';
 import * as schema from './schema';
 
 const rawDatabaseUrl = process.env['DATABASE_URL']
-  ?? (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.DATABASE_URL : undefined)
-  ?? 'mysql://user:password@localhost:3306/award_db';
+  ?? (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.DATABASE_URL : '')
+  ?? '';
 const databaseUrl = rawDatabaseUrl.replace(/^["']|["']$/g, '').trim();
 
 // TiDB Cloud or remote cloud hosts require mandatory secure TLS with certificate validation
@@ -13,19 +14,22 @@ const isTiDb = databaseUrl.includes('tidb') || databaseUrl.includes('4000');
 const isRemoteOrCloud = !databaseUrl.includes('localhost') && !databaseUrl.includes('127.0.0.1');
 const requireSsl = isRemoteOrCloud || isTiDb || process.env['DATABASE_SSL'] === 'true' || process.env['TIDB_ENABLE_SSL'] === 'true';
 
-// Create persistent connection pool
-export const pool = mysql.createPool({
+const poolConfig: mysql.PoolOptions = {
   uri: databaseUrl,
-  ssl: requireSsl
-    ? {
-        rejectUnauthorized: true,
-        minVersion: 'TLSv1.2',
-      }
-    : undefined,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-});
+};
+
+if (requireSsl) {
+  poolConfig.ssl = {
+    rejectUnauthorized: true,
+    minVersion: 'TLSv1.2',
+  };
+}
+
+// Create persistent connection pool
+export const pool = mysql.createPool(poolConfig);
 
 
 // Drizzle ORM client instance
@@ -106,6 +110,58 @@ export async function initDb(): Promise<void> {
         CONSTRAINT fk_app_attachments_app FOREIGN KEY (application_id) REFERENCES applications (id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+
+    // 4. System Settings table
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        setting_key VARCHAR(100) PRIMARY KEY,
+        setting_value TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    // Seed default admin notification email if not already set.
+    // This is the only required initial configuration; change it via Admin Dashboard.
+    await conn.query(`
+      INSERT IGNORE INTO system_settings (setting_key, setting_value)
+      VALUES ('admin_notification_email', 'bdc.award@gmail.com');
+    `);
+  } finally {
+    conn.release();
+  }
+}
+
+/**
+ * Retrieve a system setting value by key, with optional fallback default.
+ */
+export async function getSystemSetting(key: string, defaultValue: string = ''): Promise<string> {
+  try {
+    const rows = await db
+      .select()
+      .from(schema.systemSettings)
+      .where(eq(schema.systemSettings.setting_key, key))
+      .limit(1);
+    if (rows.length > 0 && rows[0]?.setting_value !== undefined) {
+      return rows[0].setting_value;
+    }
+  } catch (err) {
+    console.error(`[DB Error getSystemSetting(${key})]`, err);
+  }
+  return defaultValue;
+}
+
+/**
+ * Update or insert a system setting value by key.
+ */
+export async function setSystemSetting(key: string, value: string): Promise<void> {
+  const conn = await pool.getConnection();
+  try {
+    await conn.query(
+      `INSERT INTO system_settings (setting_key, setting_value, updated_at)
+       VALUES (?, ?, CURRENT_TIMESTAMP)
+       ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP`,
+      [key, value]
+    );
   } finally {
     conn.release();
   }

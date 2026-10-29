@@ -4,8 +4,8 @@ import assert from 'node:assert';
 import mysql from 'mysql2/promise';
 
 const BASE_URL = 'http://127.0.0.1:4321';
-const DB_URL = (process.env['DATABASE_URL'] ?? 'mysql://user:password@localhost:3306/award_db').replace(/^["']|["']$/g, '').trim();
-const isRemoteOrCloud = !DB_URL.includes('localhost') && !DB_URL.includes('127.0.0.1');
+const DB_URL = (process.env['DATABASE_URL'] ?? '').replace(/^["']|["']$/g, '').trim();
+const isRemoteOrCloud = Boolean(DB_URL) && !DB_URL.includes('localhost') && !DB_URL.includes('127.0.0.1');
 
 
 // Minimal 1x1 transparent PNG data URI for testing signature upload
@@ -36,6 +36,9 @@ async function runTests() {
 
   const successRes = await fetch(`${BASE_URL}/success`);
   assert.strictEqual(successRes.status, 200, 'Success page must return 200');
+
+  const applySuccessRes = await fetch(`${BASE_URL}/apply/success`);
+  assert.strictEqual(applySuccessRes.status, 200, 'Apply Success page must return 200');
   console.log('✓ All frontend routes respond with 200 OK and header displays Admin Portal link\n');
 
   // Test 2: Admin Route Guard Middleware & Public Exemption
@@ -61,7 +64,7 @@ async function runTests() {
   // Test 2b: Admin Registration API Endpoint Security & Creation
   console.log('[Test 2b] Testing admin registration API endpoint...');
   const testRegEmail = `test_admin_${Date.now()}@award.gov.lk`;
-  const regSecret = process.env['ADMIN_REGISTRATION_SECRET'] ?? 'choose_a_strong_secret_key_here_2026';
+  const regSecret = process.env['ADMIN_REGISTRATION_SECRET'] ?? 'test_mock_secret_passcode';
 
   // Bad registration secret
   const badSecretRes = await fetch(`${BASE_URL}/api/admin/signup`, {
@@ -183,7 +186,7 @@ async function runTests() {
   formData.append('nature_operations', 'Manufacturing');
   formData.append('contact_name', 'Anura Perera');
   formData.append('contact_designation', 'Managing Director');
-  formData.append('contact_email', 'yomaldulanjana00@gmail.com');
+  formData.append('contact_email', 'applicant.awards@enterprise.com');
   formData.append('contact_phone', '0779876543');
   formData.append('new_products_services', 'true');
   formData.append('new_market_entered', 'true');
@@ -443,8 +446,41 @@ async function runTests() {
   assert.strictEqual(updatedAppRows[0].status, 'APPROVED', 'Application status must now be APPROVED in database');
   console.log('✓ Successfully transitioned status from PENDING -> UNDER_REVIEW -> APPROVED in MySQL\n');
 
-  // Test 11: Admin Logout
-  console.log('[Test 11] Testing admin logout and session invalidation...');
+  // Test 11: Admin Application Deletion API & Cascading Cleanup
+  console.log('[Test 11] Testing admin application deletion endpoint & cascading cleanup...');
+
+  // Unauthenticated DELETE request must return 401
+  const unauthDelRes = await fetch(`${BASE_URL}/api/admin/applications/${submissionRef}`, {
+    method: 'DELETE',
+  });
+  assert.strictEqual(unauthDelRes.status, 401, 'Unauthenticated DELETE must return 401 Unauthorized');
+  const unauthDelJson = await unauthDelRes.json();
+  assert.strictEqual(unauthDelJson.success, false);
+
+  // Authenticated DELETE request
+  const authDelRes = await fetch(`${BASE_URL}/api/admin/applications/${submissionRef}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: sessionCookie,
+    },
+  });
+  assert.strictEqual(authDelRes.status, 200, 'Authenticated DELETE must return 200 OK');
+  const authDelJson = await authDelRes.json();
+  assert.strictEqual(authDelJson.success, true);
+  assert.strictEqual(authDelJson.message, 'Application deleted successfully');
+
+  // Verify deletion from MySQL database
+  const [deletedAppRows] = await conn.query('SELECT * FROM applications WHERE reference = ?', [submissionRef]);
+  assert.strictEqual(deletedAppRows.length, 0, 'Application must be deleted from applications table');
+
+  // Verify cascading deletion of child attachment records
+  const [deletedAttachmentRows] = await conn.query('SELECT * FROM application_attachments WHERE application_id = ?', [appDb.id]);
+  assert.strictEqual(deletedAttachmentRows.length, 0, 'Child attachment records must be cascaded and deleted');
+  console.log('✓ Successfully deleted application and cascaded child attachment records from MySQL\n');
+
+  // Test 12: Admin Logout
+  console.log('[Test 12] Testing admin logout and session invalidation...');
   const logoutRes = await fetch(`${BASE_URL}/api/admin/logout`, {
     method: 'POST',
     headers: { Cookie: sessionCookie },
@@ -466,7 +502,7 @@ async function runTests() {
   await conn.end();
 
   console.log('================================================================');
-  console.log('🎉 ALL 11 ENTERPRISE E2E INTEGRATION & SECURITY TESTS PASSED 100%');
+  console.log('🎉 ALL 12 ENTERPRISE E2E INTEGRATION & SECURITY TESTS PASSED 100%');
   console.log('================================================================\n');
 }
 

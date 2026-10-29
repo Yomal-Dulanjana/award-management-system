@@ -1,6 +1,6 @@
 // GET /api/download — HMAC token-verified PDF download endpoint
 import type { APIRoute } from 'astro';
-import { applicationPdfStoragePath, generateApplicationPdf, pdfStoragePath, generatePdf } from '@/lib/pdf';
+import { applicationPdfStoragePath, generateApplicationPdf } from '@/lib/pdf';
 import { isAllowedStoragePath } from '@/lib/storage';
 import { db, initDb } from '@/db';
 import { applications } from '@/db/schema';

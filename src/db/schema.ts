@@ -47,10 +47,20 @@ export const applicationAttachments = mysqlTable('application_attachments', {
   file_size_bytes: int('file_size_bytes').notNull(),
 });
 
+// System settings table — dynamic key-value storage
+export const systemSettings = mysqlTable('system_settings', {
+  setting_key: varchar('setting_key', { length: 100 }).primaryKey(),
+  setting_value: text('setting_value').notNull(),
+  updated_at: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
 export type Admin = InferSelectModel<typeof admins>;
 export type NewAdmin = InferInsertModel<typeof admins>;
 export type Application = InferSelectModel<typeof applications>;
 export type NewApplication = InferInsertModel<typeof applications>;
 export type ApplicationAttachment = InferSelectModel<typeof applicationAttachments>;
 export type NewApplicationAttachment = InferInsertModel<typeof applicationAttachments>;
+export type SystemSetting = InferSelectModel<typeof systemSettings>;
+export type NewSystemSetting = InferInsertModel<typeof systemSettings>;
 export type ApplicationStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+

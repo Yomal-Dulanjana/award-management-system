@@ -4,11 +4,11 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { ApplicationSchema } from '@/lib/validation';
 import { recalculate, generateReference } from '@/lib/calculations';
-import { sanitizeText, checkRateLimit, buildDownloadUrl, secureHex, getBaseUrl } from '@/lib/security';
-import { generateApplicationPdf, generatePdf, applicationPdfStoragePath, gcTempStorage } from '@/lib/pdf';
+import { sanitizeText, checkRateLimit, buildDownloadUrl, getBaseUrl } from '@/lib/security';
+import { generateApplicationPdf, gcTempStorage } from '@/lib/pdf';
 import { sendApplicantConfirmation, sendAdminNotification } from '@/lib/mailer';
 import type { PdfBundle } from '@/lib/pdf';
-import { db, initDb } from '@/db';
+import { db, initDb, getSystemSetting } from '@/db';
 import { applications, applicationAttachments } from '@/db/schema';
 import { getUploadsDir, ensureDir } from '@/lib/storage';
 
@@ -78,7 +78,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   // Honeypot check
   if (rawData['website_url'] && String(rawData['website_url']).trim() !== '') {
-    return json(200, { success: true, redirect: '/success' });
+    return json(200, { success: true, redirect: '/apply/success' });
   }
 
   // Filter out empty file inputs
@@ -375,6 +375,8 @@ export const POST: APIRoute = async ({ request }) => {
   let emailSent = false;
   if (pdfReady && (pdfBuffer || pdfPath)) {
     const pdfAttachment = pdfBuffer ?? pdfPath;
+
+    // Mail 1: Applicant Confirmation
     try {
       await sendApplicantConfirmation(
         { reference, companyName: data.company_name, financialYear: data.financial_year,
@@ -389,7 +391,9 @@ export const POST: APIRoute = async ({ request }) => {
       console.error('[Applicant Email Error]', reference, err);
     }
 
+    // Mail 2: Admin Notification with dynamic admin email from system_settings
     try {
+      const dynamicAdminEmail = await getSystemSetting('admin_notification_email');
       const adminDetailUrl = `${baseUrl}/admin/applications/${reference}`;
       await sendAdminNotification(
         { reference, companyName: data.company_name, financialYear: data.financial_year,
@@ -404,6 +408,7 @@ export const POST: APIRoute = async ({ request }) => {
           mimeType: a.mimeType,
           sizeBytes: a.sizeBytes,
         })),
+        dynamicAdminEmail || undefined,
       );
     } catch (err) {
       console.error('[Admin Email Error]', reference, err);

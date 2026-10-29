@@ -65,7 +65,7 @@ export interface FileValidationResult {
  */
 export function validateUploadedFile(
   filename: string,
-  declaredMime: string,
+  _declaredMime: string,
   buffer: Buffer
 ): FileValidationResult {
   // 1. Check for empty file

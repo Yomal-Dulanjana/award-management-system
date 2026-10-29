@@ -1,6 +1,6 @@
 // High-end executive corporate A4 PDF generator using PDFKit matching the officially approved award dossier.
 import PDFDocument from 'pdfkit';
-import { writeFile, readFile, mkdir, readdir, stat, rm, chmod } from 'node:fs/promises';
+import { writeFile, readFile, readdir, stat, rm, chmod } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { isServerless, ensureDir } from './storage';
@@ -437,7 +437,6 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   const rCol1W = 35;
   const rCol2W = 210;
   const rCol3W = 145;
-  const rCol4W = contentW - rCol1W - rCol2W - rCol3W; // 121.28
 
   doc.rect(LM, curY, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
   doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
@@ -619,7 +618,6 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
 
   const eCol1W = 35;
   const eCol2W = 340;
-  const eCol3W = contentW - eCol1W - eCol2W; // 136.28
 
   doc.rect(LM, p2Y, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
   doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);

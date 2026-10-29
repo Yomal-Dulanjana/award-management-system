@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import SignaturePad from "@/components/signature/SignaturePad.astro";
+import SupportCard from "@/components/common/SupportCard.astro";
 ---
 
 <Layout title="Apply - Best Diversified Company Award 2025/26">
@@ -1006,7 +1007,7 @@ import SignaturePad from "@/components/signature/SignaturePad.astro";
 </Layout>
 
 <script>
-  // Full reactive client-side multi-step wizard controller
+  // Client-side multi-step wizard controller
   function initWizard() {
     let currentStep = 1;
     const totalSteps = 6;
@@ -2082,7 +2083,7 @@ import SignaturePad from "@/components/signature/SignaturePad.astro";
               data.emailSent ? "1" : "0",
             );
 
-            window.location.href = `/success?ref=${encodeURIComponent(data.reference)}`;
+            window.location.href = `/apply/success?ref=${encodeURIComponent(data.reference)}`;
           } else {
             showError(
               data?.message || "Submission failed. Please check your details.",

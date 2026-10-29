@@ -1,0 +1,145 @@
+---
+// Admin settings page for system notification emails
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { getSystemSetting } from "@/lib/db";
+
+export const prerender = false;
+
+const currentAdminNotificationEmail = await getSystemSetting(
+  "admin_notification_email",
+  "",
+);
+---
+
+<AdminLayout
+  title="System Settings | Best Diversified Company Award"
+  activeNav="settings"
+>
+  <div class="max-w-4xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-6">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          System Settings
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          Configure dynamic administrator notifications and view outbound email
+          relay status.
+        </p>
+      </div>
+      <a
+        href="/admin/dashboard"
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+      >
+        <span>Back to Dashboard</span>
+      </a>
+    </div>
+
+    <!-- Notification Email Settings Card -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+            />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-white">Outbound Email & Alerts</h2>
+          <p class="text-xs text-slate-400">
+            Manage real-time submission alerts sent to the evaluation committee.
+          </p>
+        </div>
+      </div>
+
+      <!-- Notification Email Form -->
+      <form id="settingsForm" class="space-y-4">
+        <div>
+          <label
+            for="adminEmailInput"
+            class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+          >
+            Administrator Notification Email(s)
+          </label>
+          <input
+            type="text"
+            id="adminEmailInput"
+            name="admin_notification_email"
+            value={currentAdminNotificationEmail}
+            placeholder="e.g. committee@award.lk, director@award.lk"
+            class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-all font-mono"
+          />
+          <p class="mt-2 text-[11px] text-slate-400">
+            Comma-separated email addresses where new submission alerts and PDFs
+            are automatically dispatched.
+          </p>
+          <p id="settingsMsg" class="mt-2 text-xs hidden font-medium"></p>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <button
+            type="submit"
+            id="saveBtn"
+            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all"
+          >
+            <span>Save Settings</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById(
+    "settingsForm",
+  ) as HTMLFormElement | null;
+  const input = document.getElementById(
+    "adminEmailInput",
+  ) as HTMLInputElement | null;
+  const msg = document.getElementById("settingsMsg");
+  const saveBtn = document.getElementById(
+    "saveBtn",
+  ) as HTMLButtonElement | null;
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!input || !saveBtn || !msg) return;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+    msg.classList.add("hidden");
+
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admin_notification_email: input.value.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        msg.textContent = "Settings saved successfully.";
+        msg.className = "mt-2 text-xs text-emerald-400 font-medium";
+      } else {
+        msg.textContent = data.message || "Failed to update settings.";
+        msg.className = "mt-2 text-xs text-rose-400 font-medium";
+      }
+    } catch {
+      msg.textContent = "Network error. Please try again.";
+      msg.className = "mt-2 text-xs text-rose-400 font-medium";
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save Settings";
+      msg.classList.remove("hidden");
+    }
+  });
+</script>

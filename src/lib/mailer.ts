@@ -1,53 +1,35 @@
-// Universal Nodemailer SMTP dispatcher — supports SSL (465), STARTTLS (587),
-// Gmail, cPanel Webmail, Zimbra, Office 365, and Zoho Mail.
+// Nodemailer SMTP dispatcher — verified custom domain via Brevo SMTP
 import nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer/index.js';
-import { getBaseUrl } from './url';
+import { getBaseUrl } from '@/utils/url';
+import type { ApplicationBundle, EvidenceFileAttachment } from '@/types';
 
-export interface ApplicationBundle {
-  reference: string;
-  companyName: string;
-  financialYear: string;
-  contactEmail: string;
-  contactName: string;
-  roi: number;
-  payback: number | null;
-  diversificationTotal: number;
-  combinedPercent: number;
-  downloadUrl: string;
-  baseUrl?: string;
-  adminDetailUrl?: string;
+export type { ApplicationBundle, EvidenceFileAttachment };
+
+// Brevo SMTP transporter instance
+export const transporter = nodemailer.createTransport({
+  host: process.env['SMTP_HOST'] || 'smtp-relay.brevo.com',
+  port: Number(process.env['SMTP_PORT']) || 587,
+  secure: process.env['SMTP_SECURE'] === 'true',
+  auth: {
+    user: process.env['SMTP_USER'] || '',
+    pass: process.env['SMTP_PASS'] || '',
+  },
+});
+
+// Outbound sender identity header
+export const OFFICIAL_FROM_NAME    = process.env['MAIL_FROM_NAME'] || 'Best Diversified Company Award 2025/26';
+export const OFFICIAL_FROM_ADDRESS = process.env['MAIL_FROM_ADDRESS'] || 'noreply@yomaldulanjana.me';
+export const OFFICIAL_FROM         = process.env['MAIL_FROM'] || `"${OFFICIAL_FROM_NAME}" <${OFFICIAL_FROM_ADDRESS}>`;
+
+export function getMailFromAddress(): string {
+  return OFFICIAL_FROM;
 }
 
-// Build Nodemailer transporter from .env SMTP variables
-function createTransport() {
-  const port = parseInt(process.env['SMTP_PORT'] ?? '587', 10);
-  const encryption = (process.env['SMTP_ENCRYPTION'] ?? 'tls').toLowerCase();
-  const secure = encryption === 'ssl' || port === 465;
-
-  return nodemailer.createTransport({
-    host: process.env['SMTP_HOST'] ?? 'localhost',
-    port,
-    secure,
-    requireTLS: !secure && (encryption === 'tls' || port === 587),
-    auth: process.env['SMTP_AUTH'] !== 'false'
-      ? {
-          user: process.env['SMTP_USER'] ?? '',
-          pass: (process.env['SMTP_PASS'] ?? '').replace(/^["']|["']$/g, ''),
-        }
-      : undefined,
-    tls: {
-      rejectUnauthorized: process.env['SMTP_ALLOW_SELF_SIGNED'] === 'true' ? false : true,
-    },
-  });
-}
-
-// Format amount for email display
 function fmt(n: number) {
   return 'Rs. ' + n.toLocaleString('en-LK', { minimumFractionDigits: 2 });
 }
 
-// HTML email wrapper with corporate branding
 function htmlWrap(body: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -80,12 +62,9 @@ function htmlWrap(body: string): string {
 <body><div class="card">${body}</div></body></html>`;
 }
 
-// Send applicant confirmation email with PDF attached (accepts filesystem path or Buffer)
+// Send confirmation email and attach compiled PDF dossier to applicant
 export async function sendApplicantConfirmation(bundle: ApplicationBundle, pdfAttachment: string | Buffer): Promise<void> {
-  const transport = createTransport();
   const appName = process.env['APP_NAME'] ?? 'Best Diversified Company Award';
-  const fromName = process.env['MAIL_FROM_NAME'] ?? appName;
-  const fromAddr = process.env['MAIL_FROM_ADDRESS'] ?? 'no-reply@example.com';
 
   const body = `
     <div class="header">
@@ -119,7 +98,7 @@ export async function sendApplicantConfirmation(bundle: ApplicationBundle, pdfAt
     : { filename: `${bundle.reference}.pdf`, path: pdfAttachment };
 
   const mailOptions: Mail.Options = {
-    from: `${fromName} <${fromAddr}>`,
+    from: OFFICIAL_FROM,
     to: bundle.contactEmail,
     subject: `Application Received – ${bundle.reference} | ${appName}`,
     html: htmlWrap(body),
@@ -127,33 +106,45 @@ export async function sendApplicantConfirmation(bundle: ApplicationBundle, pdfAt
     attachments: [attachment],
   };
 
-  await transport.sendMail(mailOptions);
+  await transporter.sendMail(mailOptions);
 }
 
-export interface EvidenceFileAttachment {
-  originalName: string;
-  filePath: string;
-  mimeType: string;
-  sizeBytes: number;
-}
-
-// Send admin notification to all comma-separated ADMIN_EMAIL recipients
+// Send alert and dossier to admin notification recipient resolved from DB
 export async function sendAdminNotification(
   bundle: ApplicationBundle,
   pdfAttachment: string | Buffer,
   evidenceFiles: EvidenceFileAttachment[] = [],
+  adminRecipientOverride?: string | string[],
 ): Promise<void> {
-  const adminEmails = (process.env['ADMIN_EMAIL'] ?? '').split(',').map(e => e.trim()).filter(Boolean);
-  if (adminEmails.length === 0) return;
+  let adminEmails: string[] = [];
+  if (adminRecipientOverride) {
+    adminEmails = (Array.isArray(adminRecipientOverride) ? adminRecipientOverride : adminRecipientOverride.split(','))
+      .map(e => e.trim())
+      .filter(Boolean);
+  }
 
-  const transport = createTransport();
+  // Fetch admin recipient from system_settings table
+  if (adminEmails.length === 0) {
+    try {
+      const { getSystemSetting } = await import('@/db');
+      const dynamicEmail = await getSystemSetting('admin_notification_email');
+      if (dynamicEmail && dynamicEmail !== 'admin@yourcompany.com') {
+        adminEmails = dynamicEmail.split(',').map(e => e.trim()).filter(Boolean);
+      }
+    } catch (err) {
+      console.warn('[Mailer] Could not fetch admin_notification_email from DB:', err);
+    }
+  }
+
+  if (adminEmails.length === 0) {
+    console.warn('[Mailer] No admin notification email configured in system_settings.');
+    return;
+  }
+
   const appName = process.env['APP_NAME'] ?? 'Best Diversified Company Award';
-  const fromName = process.env['MAIL_FROM_NAME'] ?? appName;
-  const fromAddr = process.env['MAIL_FROM_ADDRESS'] ?? 'no-reply@example.com';
   const baseUrl = bundle.baseUrl || getBaseUrl();
   const adminDetailUrl = bundle.adminDetailUrl || `${baseUrl}/admin/applications/${bundle.reference}`;
 
-  // Calculate PDF payload size
   let pdfSizeBytes = 0;
   if (Buffer.isBuffer(pdfAttachment)) {
     pdfSizeBytes = pdfAttachment.length;
@@ -167,13 +158,11 @@ export async function sendAdminNotification(
     }
   }
 
-  // Calculate evidence payload size
   const evidenceSizeBytes = evidenceFiles.reduce((acc, f) => acc + f.sizeBytes, 0);
   const totalPayloadBytes = pdfSizeBytes + evidenceSizeBytes;
-  const SMTP_THRESHOLD_BYTES = 20 * 1024 * 1024; // 20MB max payload
+  const SMTP_THRESHOLD_BYTES = 20 * 1024 * 1024;
   const exceedsThreshold = totalPayloadBytes > SMTP_THRESHOLD_BYTES;
 
-  // Prepare attachments array
   const attachments: Mail.Options['attachments'] = [
     Buffer.isBuffer(pdfAttachment)
       ? { filename: `${bundle.reference}.pdf`, content: pdfAttachment }
@@ -182,20 +171,15 @@ export async function sendAdminNotification(
 
   if (!exceedsThreshold && evidenceFiles.length > 0) {
     for (const f of evidenceFiles) {
-      attachments.push({
-        filename: f.originalName,
-        path: f.filePath,
-        contentType: f.mimeType,
-      });
+      attachments.push({ filename: f.originalName, path: f.filePath, contentType: f.mimeType });
     }
   }
 
-  // Large payload notice if exceeded
   const largeAttachmentNotice = exceedsThreshold && evidenceFiles.length > 0
     ? `
       <div style="background:#fffbeb;border:1px solid #fef3c7;border-left:4px solid #f59e0b;padding:14px 18px;border-radius:6px;margin:18px 0;font-size:13px;color:#92400e;">
         <strong style="display:block;font-size:14px;margin-bottom:6px;">⚠️ Large Evidence Attachments Notice</strong>
-        Total submission files (${(totalPayloadBytes / (1024 * 1024)).toFixed(1)} MB) exceed the 20MB email dispatch limit.
+        Total submission files (${(totalPayloadBytes / (1024 * 1024)).toFixed(1)} MB) exceed the 20 MB email dispatch limit.
         The compiled PDF application is attached below. Access all candidate evidence files directly in the Admin Dashboard:
         <ul style="margin:8px 0 0;padding-left:20px;">
           ${evidenceFiles.map(f => `<li><a href="${adminDetailUrl}" style="color:#1d4ed8;font-weight:600;text-decoration:underline;">${f.originalName}</a> (${(f.sizeBytes / (1024 * 1024)).toFixed(2)} MB)</li>`).join('')}
@@ -238,8 +222,8 @@ export async function sendAdminNotification(
     </div>
     <div class="footer">CONFIDENTIAL • ${appName} Admin Alert</div>`;
 
-  await transport.sendMail({
-    from: `${fromName} <${fromAddr}>`,
+  await transporter.sendMail({
+    from: OFFICIAL_FROM,
     to: adminEmails.join(', '),
     subject: `[Admin] New Application – ${bundle.reference} | ${bundle.companyName}`,
     html: htmlWrap(body),
@@ -247,4 +231,3 @@ export async function sendAdminNotification(
     attachments,
   });
 }
-

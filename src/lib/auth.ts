@@ -2,7 +2,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 
-const SESSION_SECRET = process.env['ADMIN_SESSION_SECRET'] ?? 'insecure-default-session-secret-change-me';
+const SESSION_SECRET = process.env['ADMIN_SESSION_SECRET'] ?? '';
 const SESSION_TTL_SECONDS = parseInt(process.env['SESSION_LIFETIME'] ?? '86400', 10);
 
 export interface AdminSession {

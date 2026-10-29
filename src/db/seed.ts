@@ -9,9 +9,9 @@ async function seed() {
   console.log('[Seed] Ensuring database tables exist...');
   await initDb();
 
-  const defaultEmail = process.env['DEFAULT_ADMIN_EMAIL'] ?? 'admin@award.dtech.lk';
-  const defaultPass = process.env['DEFAULT_ADMIN_PASSWORD'] ?? 'Admin@Award2026!';
-  const defaultName = 'System Administrator';
+  const defaultEmail = process.env['DEFAULT_ADMIN_EMAIL'] ?? 'admin@award.gov.lk';
+  const defaultPass = process.env['DEFAULT_ADMIN_PASSWORD'] || randomUUID().replace(/-/g, '').slice(0, 16);
+  const defaultName = process.env['DEFAULT_ADMIN_NAME'] ?? 'System Administrator';
 
   const existing = await db.select().from(admins).where(eq(admins.email, defaultEmail)).limit(1);
 

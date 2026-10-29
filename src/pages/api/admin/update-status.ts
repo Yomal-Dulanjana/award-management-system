@@ -1,9 +1,7 @@
-// POST /api/admin/update-status — Authenticated status transition endpoint
+// Status transition endpoint for applications
 import type { APIRoute } from 'astro';
-import { db, initDb } from '@/db';
-import { applications } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 import { verifySessionToken } from '@/lib/auth';
+import { updateApplicationStatusByReference } from '@/lib/applications';
 import type { ApplicationStatus } from '@/db/schema';
 
 export const prerender = false;
@@ -46,24 +44,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    await initDb();
-
-    // Verify application exists
-    const existing = await db
-      .select({ id: applications.id })
-      .from(applications)
-      .where(eq(applications.reference, reference))
-      .limit(1);
-
-    if (existing.length === 0) {
+    const updated = await updateApplicationStatusByReference(reference, newStatus);
+    if (!updated) {
       return json(404, { success: false, message: `Application ${reference} not found.` });
     }
-
-    // Update status
-    await db
-      .update(applications)
-      .set({ status: newStatus as ApplicationStatus })
-      .where(eq(applications.reference, reference));
 
     return json(200, {
       success: true,
@@ -72,7 +56,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       status: newStatus,
     });
   } catch (err) {
-    console.error('[Update Status Error]', reference, err);
     return json(500, { success: false, message: 'Database error while updating status.' });
   }
 };

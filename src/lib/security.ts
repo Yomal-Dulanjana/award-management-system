@@ -4,7 +4,7 @@ import { getBaseUrl } from './url';
 
 export { getBaseUrl } from './url';
 
-const DOWNLOAD_SECRET = process.env['DOWNLOAD_SECRET'] || process.env['SESSION_SECRET'] || 'award_sec_fallback_bdc_2026_dtech';
+const DOWNLOAD_SECRET = process.env['DOWNLOAD_SECRET'] || process.env['ADMIN_SESSION_SECRET'] || '';
 const TOKEN_TTL_SECONDS = 3600; // 1-hour signed link expiry
 
 // Extract client IP address reliably from incoming request headers

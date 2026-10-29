@@ -8,7 +8,7 @@ import { applications, applicationAttachments } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { verifySessionToken } from '@/lib/auth';
 import { isAllowedStoragePath, getUploadsDir } from '@/lib/storage';
-import { applicationPdfStoragePath, generateApplicationPdf, pdfStoragePath, generatePdf } from '@/lib/pdf';
+import { applicationPdfStoragePath, generateApplicationPdf } from '@/lib/pdf';
 import JSZip from 'jszip';
 
 export const prerender = false;
