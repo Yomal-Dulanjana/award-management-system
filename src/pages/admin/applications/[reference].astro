@@ -2,7 +2,12 @@
 // Comprehensive application review
 import AdminLayout from "@/layouts/AdminLayout.astro";
 import { getApplicationByReference } from "@/lib/applications";
-import { fmtCurrency, fmtDate, fmtFileSize as fmtBytes } from "@/utils/formatters";
+import {
+  fmtCurrency,
+  fmtDate,
+  fmtFileSize as fmtBytes,
+  formatSLDateTime,
+} from "@/utils/formatters";
 
 export const prerender = false;
 
@@ -49,10 +54,15 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
       </nav>
 
       <div class="flex items-center space-x-2">
-        <span class="text-xs text-slate-400">Submission Date:</span>
-        <span class="text-xs font-mono text-slate-200">
-          {fmtDate(app.submitted_at)}
-        </span>
+        <span class="text-xs text-slate-400">Submission Date & Time:</span>
+        {(() => {
+          const { dateStr, timeStr } = formatSLDateTime(app.submitted_at);
+          return (
+            <span class="text-xs font-mono text-slate-200">
+              {dateStr} • {timeStr}
+            </span>
+          );
+        })()}
       </div>
     </div>
 
@@ -80,19 +90,19 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
         </div>
 
         <!-- Direct Actions & Status Transition Control -->
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
           <!-- Status Dropdown Form -->
-          <div class="bg-slate-950/80 p-2.5 rounded-2xl border border-slate-800 flex items-center space-x-2">
+          <div class="w-full sm:w-auto bg-slate-950/80 p-2 rounded-2xl border border-slate-800 flex items-center justify-between sm:justify-start space-x-2 min-h-[44px]">
             <label
               for="statusSelect"
-              class="text-xs font-semibold uppercase tracking-wider text-slate-400 px-2"
+              class="text-xs font-semibold uppercase tracking-wider text-slate-400 px-2 shrink-0"
             >
               Status:
             </label>
             <select
               id="statusSelect"
               data-ref={app.reference}
-              class="bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer"
+              class="bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all cursor-pointer min-h-[36px]"
             >
               <option value="PENDING" selected={app.status === "PENDING"}>
                 PENDING
@@ -122,10 +132,10 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
           <a
             href={`/api/admin/download-file?ref=${app.reference}&type=pdf`}
             target="_blank"
-            class="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]"
+            class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02] min-h-[44px]"
           >
             <svg
-              class="w-4 h-4 text-slate-950"
+              class="w-4 h-4 text-slate-950 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -144,10 +154,10 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
           {attachments.length > 0 && (
             <a
               href={`/api/admin/download-file?ref=${app.reference}&type=zip`}
-              class="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition-all"
+              class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition-all min-h-[44px]"
             >
               <svg
-                class="w-4 h-4 text-amber-400"
+                class="w-4 h-4 text-amber-400 shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -167,12 +177,17 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
           <button
             type="button"
             id="detailDeleteBtn"
-            class="inline-flex items-center justify-center space-x-1.5 px-3 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold text-xs border border-rose-500/30 transition-all hover:scale-[1.02]"
+            class="w-full sm:w-auto inline-flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold text-xs border border-rose-500/30 transition-all hover:scale-[1.02] min-h-[44px]"
             data-id={app.id}
             data-reference={app.reference}
             title={`Delete application ${app.reference}`}
           >
-            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              class="w-4 h-4 text-rose-400 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -187,21 +202,21 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
     </div>
 
     <!-- Financial Performance Highlights -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
           Total Company Revenue
         </span>
-        <div class="mt-2 text-xl sm:text-2xl font-bold text-white font-mono">
+        <div class="mt-2 text-xl sm:text-2xl font-bold text-white font-mono break-words">
           {fmtCurrency(app.total_revenue)}
         </div>
       </div>
 
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
           Diversification Revenue
         </span>
-        <div class="mt-2 text-xl sm:text-2xl font-bold text-amber-400 font-mono">
+        <div class="mt-2 text-xl sm:text-2xl font-bold text-amber-400 font-mono break-words">
           {fmtCurrency(app.diversification_revenue)}
         </div>
         <div class="mt-1 text-xs text-slate-400">
@@ -215,11 +230,11 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
         </div>
       </div>
 
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
           Return on Investment (ROI)
         </span>
-        <div class="mt-2 text-xl sm:text-2xl font-bold text-emerald-400 font-mono">
+        <div class="mt-2 text-xl sm:text-2xl font-bold text-emerald-400 font-mono break-words">
           {Number(app.roi_percent).toFixed(2)}%
         </div>
         <div class="mt-1 text-xs text-slate-400">
@@ -227,11 +242,11 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
         </div>
       </div>
 
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
           Payback Period
         </span>
-        <div class="mt-2 text-xl sm:text-2xl font-bold text-slate-100 font-mono">
+        <div class="mt-2 text-xl sm:text-2xl font-bold text-slate-100 font-mono break-words">
           {app.payback_years !== null
             ? `${Number(app.payback_years).toFixed(2)} Years`
             : "N/A"}
@@ -282,7 +297,7 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
                 Designation
               </span>
               <span class="font-semibold text-white mt-1 block">
-                {app.contact_designation || formData.contact_designation || '—'}
+                {app.contact_designation || formData.contact_designation || "—"}
               </span>
             </div>
             <div>
@@ -620,30 +635,48 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
             <span>Authorized Declaration</span>
           </h2>
 
-          <div class="space-y-3 text-xs">
+          <div class="space-y-3">
             <div>
-              <span class="text-slate-400 uppercase tracking-wider block">
+              <span class="text-xs text-slate-400 tracking-wider block">
                 Signatory Name
               </span>
               <span class="font-semibold text-white mt-0.5 block text-sm">
-                {app.declaration_name || formData.declaration_name || app.contact_name}
+                {app.declaration_name ||
+                  formData.declaration_name ||
+                  app.contact_name}
               </span>
             </div>
             <div>
-              <span class="text-slate-400 uppercase tracking-wider block">
+              <span class="text-xs text-slate-400 tracking-wider block">
                 Designation / Title
               </span>
-              <span class="font-semibold text-white mt-0.5 block">
-                {app.declaration_designation || formData.declaration_designation || app.contact_designation || formData.contact_designation || "Authorized Representative"}
+              <span class="text-sm font-semibold text-white mt-0.5 block">
+                {app.declaration_designation ||
+                  formData.declaration_designation ||
+                  app.contact_designation ||
+                  formData.contact_designation ||
+                  "Authorized Representative"}
               </span>
             </div>
             <div>
-              <span class="text-slate-400 uppercase tracking-wider block">
-                Declaration Date
+              <span class="text-xs text-slate-400 tracking-wider block">
+                Submited Time & Date
               </span>
-              <span class="font-mono text-slate-200 mt-0.5 block">
-                {formData.declaration_date || "Confirmed on submission"}
-              </span>
+              {(() => {
+                const { dateStr, timeStr } = formatSLDateTime(
+                  app.submitted_at || formData.declaration_date,
+                );
+                return (
+                  <div class="flex flex-col gap-0.5 mt-1">
+                    <span class="text-sm font-semibold text-white">
+                      {dateStr} - {timeStr}
+                    </span>
+                    {/* <span class="text-xs font-normal text-white">
+                      {timeStr}
+                    </span> */}
+                  </div>
+                );
+              })()}
             </div>
 
             <!-- Digital Signature Image Preview -->
@@ -707,9 +740,15 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
     // Detail page Delete Confirmation Modal
     const detailDeleteBtn = document.getElementById("detailDeleteBtn");
     const detailDeleteModal = document.getElementById("detailDeleteModal");
-    const detailCancelDeleteBtn = document.getElementById("detailCancelDeleteBtn");
-    const detailConfirmDeleteBtn = document.getElementById("detailConfirmDeleteBtn") as HTMLButtonElement | null;
-    const detailConfirmDeleteBtnText = document.getElementById("detailConfirmDeleteBtnText");
+    const detailCancelDeleteBtn = document.getElementById(
+      "detailCancelDeleteBtn",
+    );
+    const detailConfirmDeleteBtn = document.getElementById(
+      "detailConfirmDeleteBtn",
+    ) as HTMLButtonElement | null;
+    const detailConfirmDeleteBtnText = document.getElementById(
+      "detailConfirmDeleteBtnText",
+    );
 
     function openDetailDeleteModal() {
       if (detailDeleteModal) {
@@ -724,25 +763,32 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
         document.body.classList.remove("overflow-hidden");
       }
       if (detailConfirmDeleteBtn) detailConfirmDeleteBtn.disabled = false;
-      if (detailConfirmDeleteBtnText) detailConfirmDeleteBtnText.textContent = "Confirm Delete";
+      if (detailConfirmDeleteBtnText)
+        detailConfirmDeleteBtnText.textContent = "Confirm Delete";
     }
 
     detailDeleteBtn?.addEventListener("click", openDetailDeleteModal);
     detailCancelDeleteBtn?.addEventListener("click", closeDetailDeleteModal);
-    document.getElementById("detailDeleteBackdrop")?.addEventListener("click", closeDetailDeleteModal);
+    document
+      .getElementById("detailDeleteBackdrop")
+      ?.addEventListener("click", closeDetailDeleteModal);
 
     detailConfirmDeleteBtn?.addEventListener("click", async () => {
       const targetId = detailDeleteBtn?.getAttribute("data-id");
       if (!targetId) return;
 
       if (detailConfirmDeleteBtn) detailConfirmDeleteBtn.disabled = true;
-      if (detailConfirmDeleteBtnText) detailConfirmDeleteBtnText.textContent = "Deleting...";
+      if (detailConfirmDeleteBtnText)
+        detailConfirmDeleteBtnText.textContent = "Deleting...";
 
       try {
-        const res = await fetch(`/api/admin/applications/${encodeURIComponent(targetId)}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-        });
+        const res = await fetch(
+          `/api/admin/applications/${encodeURIComponent(targetId)}`,
+          {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+          },
+        );
 
         const data = await res.json();
         if (res.ok && data.success) {
@@ -750,23 +796,28 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
         } else {
           alert(data.message || "Failed to delete application.");
           if (detailConfirmDeleteBtn) detailConfirmDeleteBtn.disabled = false;
-          if (detailConfirmDeleteBtnText) detailConfirmDeleteBtnText.textContent = "Confirm Delete";
+          if (detailConfirmDeleteBtnText)
+            detailConfirmDeleteBtnText.textContent = "Confirm Delete";
         }
       } catch (err) {
         console.error("Delete error:", err);
         alert("Network or server error while deleting application.");
         if (detailConfirmDeleteBtn) detailConfirmDeleteBtn.disabled = false;
-        if (detailConfirmDeleteBtnText) detailConfirmDeleteBtnText.textContent = "Confirm Delete";
+        if (detailConfirmDeleteBtnText)
+          detailConfirmDeleteBtnText.textContent = "Confirm Delete";
       }
     });
 
     window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && detailDeleteModal && !detailDeleteModal.classList.contains("hidden")) {
+      if (
+        e.key === "Escape" &&
+        detailDeleteModal &&
+        !detailDeleteModal.classList.contains("hidden")
+      ) {
         closeDetailDeleteModal();
       }
     });
   </script>
-
   <!-- Detail Page Delete Confirmation Modal -->
   <div
     id="detailDeleteModal"
@@ -775,23 +826,45 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
     role="dialog"
     aria-modal="true"
   >
-    <div id="detailDeleteBackdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"></div>
+    <div
+      id="detailDeleteBackdrop"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+    ></div>
     <div class="relative bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl z-10 space-y-5">
       <div class="flex items-start gap-4">
         <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
           </svg>
         </div>
         <div>
-          <h3 id="detailDeleteModalTitle" class="text-lg font-bold text-white tracking-tight">
+          <h3
+            id="detailDeleteModalTitle"
+            class="text-lg font-bold text-white tracking-tight"
+          >
             Delete Application
           </h3>
           <p class="text-sm text-slate-300 mt-2 leading-relaxed">
-            Are you sure you want to permanently delete application <span class="font-mono font-bold text-amber-400">{app.reference}</span>?
+            Are you sure you want to permanently delete application{" "}
+            <span class="font-mono font-bold text-amber-400">
+              {app.reference}
+            </span>
+            ?
           </p>
           <p class="text-xs text-slate-400 mt-2">
-            This action cannot be undone. All related records, uploaded evidence files, and generated PDF dossiers will be permanently deleted from the database and storage.
+            This action cannot be undone. All related records, uploaded evidence
+            files, and generated PDF dossiers will be permanently deleted from
+            the database and storage.
           </p>
         </div>
       </div>
@@ -809,8 +882,18 @@ const title = `${app.company_name} (${app.reference}) | Admin Review`;
           id="detailConfirmDeleteBtn"
           class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-900/30 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
           </svg>
           <span id="detailConfirmDeleteBtnText">Confirm Delete</span>
         </button>

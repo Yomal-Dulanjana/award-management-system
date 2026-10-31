@@ -568,6 +568,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
 
   const divDetail = bundle.diversificationDetails || bundle.products?.[0]?.description || bundle.natureOperations || 'N/A';
   const mktDetail = bundle.marketsCustomers || bundle.newMarketDetails || 'N/A';
+  void mktDetail;
 
   // Subheading: Diversification Details
   ensureSpace(40);

@@ -22,6 +22,29 @@ export function fmtDate(d: Date | string | null | undefined): string {
   });
 }
 
+// Format date and time using Sri Lanka timezone (Asia/Colombo)
+export function formatSLDateTime(dateInput: Date | string | number | null | undefined): { dateStr: string; timeStr: string } {
+  if (!dateInput) return { dateStr: '—', timeStr: '—' };
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return { dateStr: '—', timeStr: '—' };
+
+  const dateStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Colombo',
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric'
+  }).format(d);
+
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Colombo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  }).format(d);
+
+  return { dateStr, timeStr };
+}
+
 // Format bytes into human-readable size (e.g. 2.45 MB)
 export function fmtFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;

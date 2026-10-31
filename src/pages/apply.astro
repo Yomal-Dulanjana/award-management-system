@@ -57,6 +57,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
             style="width: 16.66%"
           ></div>
         </div>
+        <!-- Desktop / Tablet full step labels -->
         <div class="flex justify-between text-[11px] font-medium text-slate-400 mt-2.5 hidden sm:flex">
           <span class="step-lbl" data-step="1">
             1. Company
@@ -75,6 +76,15 @@ import SupportCard from "@/components/common/SupportCard.astro";
           </span>
           <span class="step-lbl" data-step="6">
             6. Declaration
+          </span>
+        </div>
+        <!-- Compact Numerical Indicator on Mobile (<= 600px) -->
+        <div class="sm:hidden flex items-center justify-between text-xs text-slate-400 mt-2.5 px-0.5">
+          <span id="mobile-step-name" class="font-bold text-amber-400 truncate">
+            1. Company Details
+          </span>
+          <span id="mobile-step-percent" class="font-mono text-[11px] text-slate-400 shrink-0">
+            17% Complete
           </span>
         </div>
       </div>
@@ -171,7 +181,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
               name="company_name"
               required
               placeholder="e.g. Acme Industrial Group PLC"
-              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
             />
           </div>
 
@@ -184,7 +194,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
               name="financial_year"
               value="2025/26"
               readonly
-              class="w-full bg-slate-800/40 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-400 cursor-not-allowed select-none"
+              class="w-full bg-slate-800/40 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-400 cursor-not-allowed select-none min-h-[44px]"
             />
           </div>
 
@@ -195,7 +205,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
             <select
               name="nature_operations"
               required
-              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
             >
               <option value="">Select category...</option>
               <option value="Manufacturing">Manufacturing</option>
@@ -220,7 +230,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
                 name="contact_name"
                 required
                 placeholder="e.g. A. B. Perera"
-                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
               />
             </div>
 
@@ -233,7 +243,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
                 name="contact_designation"
                 required
                 placeholder="e.g. Managing Director"
-                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
               />
             </div>
 
@@ -246,7 +256,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
                 name="contact_email"
                 required
                 placeholder="e.g. perera@acme.com"
-                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
               />
             </div>
 
@@ -267,7 +277,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
                 autocomplete="tel"
                 required
                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
-                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all font-mono"
+                class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all font-mono min-h-[44px]"
               />
               <p
                 id="phone-error-msg"
@@ -280,10 +290,10 @@ import SupportCard from "@/components/common/SupportCard.astro";
           </div>
         </div>
 
-        <div class="flex justify-end pt-4">
+        <div class="flex flex-col-reverse sm:flex-row justify-end pt-4">
           <button
             type="button"
-            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+            class="next-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all min-h-[44px]"
           >
             <span>Continue to Step 2</span>
             <svg
@@ -473,16 +483,16 @@ import SupportCard from "@/components/common/SupportCard.astro";
           />
         </div>
 
-        <div class="flex justify-between pt-6 border-t border-slate-800">
+        <div class="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-6 border-t border-slate-800">
           <button
             type="button"
-            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+            class="prev-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors min-h-[44px] flex items-center justify-center"
           >
             Back
           </button>
           <button
             type="button"
-            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+            class="next-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all min-h-[44px]"
           >
             <span>Continue to Step 3</span>
             <svg
@@ -528,7 +538,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
             id="total_company_revenue"
             required
             placeholder="e.g. 100,000,000"
-            class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+            class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
           />
         </div>
 
@@ -626,16 +636,16 @@ import SupportCard from "@/components/common/SupportCard.astro";
           </div>
         </div>
 
-        <div class="flex justify-between pt-6 border-t border-slate-800">
+        <div class="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-6 border-t border-slate-800">
           <button
             type="button"
-            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+            class="prev-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors min-h-[44px] flex items-center justify-center"
           >
             Back
           </button>
           <button
             type="button"
-            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+            class="next-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all min-h-[44px]"
           >
             <span>Continue to Step 4</span>
             <svg
@@ -736,16 +746,16 @@ import SupportCard from "@/components/common/SupportCard.astro";
           </label>
         </div>
 
-        <div class="flex justify-between pt-6 border-t border-slate-800">
+        <div class="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-6 border-t border-slate-800">
           <button
             type="button"
-            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+            class="prev-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors min-h-[44px] flex items-center justify-center"
           >
             Back
           </button>
           <button
             type="button"
-            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+            class="next-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all min-h-[44px]"
           >
             <span>Continue to Step 5</span>
             <svg
@@ -792,7 +802,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
               id="total_investment"
               required
               placeholder="e.g. 5,000,000"
-              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
             />
             <span class="text-[11px] text-slate-400 block">
               Includes machinery, tech, R&D, and market launch.
@@ -811,7 +821,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
               id="operating_profit"
               required
               placeholder="e.g. 1,000,000"
-              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
             />
             <span class="text-[11px] text-slate-400 block">
               Use annualized operating profit if newly launched.
@@ -852,16 +862,16 @@ import SupportCard from "@/components/common/SupportCard.astro";
           </div>
         </div>
 
-        <div class="flex justify-between pt-6 border-t border-slate-800">
+        <div class="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-6 border-t border-slate-800">
           <button
             type="button"
-            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+            class="prev-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors min-h-[44px] flex items-center justify-center"
           >
             Back
           </button>
           <button
             type="button"
-            class="next-step-btn px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
+            class="next-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all min-h-[44px]"
           >
             <span>Continue to Step 6</span>
             <svg
@@ -905,7 +915,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
               name="declaration_name"
               required
               placeholder="e.g. Priyantha Jayasuriya"
-              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
             />
           </div>
 
@@ -918,7 +928,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
               name="declaration_designation"
               required
               placeholder="e.g. Chief Executive Officer"
-              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
             />
           </div>
 
@@ -931,7 +941,7 @@ import SupportCard from "@/components/common/SupportCard.astro";
               name="declaration_date"
               id="declaration_date"
               required
-              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+              class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all min-h-[44px]"
             />
           </div>
         </div>
@@ -966,17 +976,17 @@ import SupportCard from "@/components/common/SupportCard.astro";
           </label>
         </div>
 
-        <div class="flex justify-between items-center pt-6 border-t border-slate-800">
+        <div class="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 pt-6 border-t border-slate-800">
           <button
             type="button"
-            class="prev-step-btn px-6 py-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors"
+            class="prev-step-btn w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-slate-300 font-semibold text-sm transition-colors min-h-[44px] flex items-center justify-center"
           >
             Back
           </button>
           <button
             type="submit"
             id="submit-app-btn"
-            class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-sm flex items-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all"
+            class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-500/25 transition-all min-h-[44px]"
           >
             <span id="submit-btn-text">Submit Official Application</span>
             <svg
@@ -1259,6 +1269,24 @@ import SupportCard from "@/components/common/SupportCard.astro";
           el.className = "step-lbl text-slate-500";
         }
       });
+
+      // Update mobile step indicator
+      const mobileStepNames = [
+        "1. Company Details",
+        "2. Qualification & Activities",
+        "3. Revenue Diversification",
+        "4. Margin Improvement",
+        "5. ROI & Payback",
+        "6. Declaration & Signature",
+      ];
+      const mobileStepName = document.getElementById("mobile-step-name");
+      const mobileStepPercent = document.getElementById("mobile-step-percent");
+      if (mobileStepName && mobileStepNames[step - 1]) {
+        mobileStepName.textContent = mobileStepNames[step - 1];
+      }
+      if (mobileStepPercent) {
+        mobileStepPercent.textContent = `${Math.round((step / totalSteps) * 100)}% Complete`;
+      }
 
       // Hide error banner when switching steps
       if (errorBanner) errorBanner.classList.add("hidden");

@@ -1,0 +1,5 @@
+---
+// src/pages/admin/[id].astro — Compatibility route redirecting to /admin/applications/[reference]
+const { id } = Astro.params;
+return Astro.redirect(`/admin/applications/${id || ""}`);
+---

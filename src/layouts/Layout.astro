@@ -17,11 +17,11 @@ const {
 <!doctype html>
 <html
   lang="en"
-  class="h-full bg-slate-50 text-slate-800 antialiased selection:bg-amber-500 selection:text-white"
+  class="h-full bg-slate-50 text-slate-800 antialiased selection:bg-amber-500 selection:text-white overflow-x-hidden"
 >
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow" />
@@ -33,14 +33,14 @@ const {
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
-  <body class="min-h-full flex flex-col font-sans bg-[#071329] text-slate-100">
+  <body class="min-h-full flex flex-col font-sans bg-[#071329] text-slate-100 overflow-x-hidden w-full max-w-full">
     <!-- Top Decorative Line -->
     <div class="h-1.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600"></div>
 
     <!-- Navigation Bar -->
     <header class="border-b border-slate-800/80 bg-[#0b2043]/90 backdrop-blur-md sticky top-0 z-40">
-      <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 lg:px-8 min-h-16 sm:min-h-20 flex flex-wrap gap-2 sm:gap-4 justify-between items-center">
-        <a href="/" class="flex items-center gap-2.5 sm:gap-3.5 group shrink-0">
+      <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 lg:px-8 min-h-16 sm:min-h-20 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2.5 sm:gap-3.5 group shrink-0 min-w-0">
           <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform duration-200 shrink-0">
             <svg
               class="w-5 h-5 sm:w-6 sm:h-6 text-slate-950"
@@ -50,17 +50,18 @@ const {
               <path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z" />
             </svg>
           </div>
-          <div>
-            <div class="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-amber-400">
+          <div class="truncate">
+            <div class="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-amber-400 truncate">
               Award Portal • 2025/26
             </div>
-            <div class="text-sm sm:text-lg font-bold tracking-tight text-white group-hover:text-amber-200 transition-colors">
+            <div class="text-xs sm:text-lg font-bold tracking-tight text-white group-hover:text-amber-200 transition-colors truncate">
               Best Diversified Company
             </div>
           </div>
         </a>
 
-        <nav class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <!-- Desktop Navigation (>= 601px) -->
+        <nav class="hidden sm:flex items-center gap-2 sm:gap-3 shrink-0">
           <a
             href="/admin/login"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 text-xs sm:text-sm font-semibold border border-slate-700/80 hover:border-amber-500/40 shadow-sm transition-all duration-150"
@@ -101,27 +102,85 @@ const {
             </svg>
           </a>
         </nav>
+
+        <!-- Mobile Menu Toggle Button (<= 600px) -->
+        <button
+          type="button"
+          id="public-mobile-menu-btn"
+          class="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-300 hover:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-colors shrink-0"
+          aria-label="Toggle Navigation Menu"
+          aria-expanded="false"
+        >
+          <svg id="menu-icon-open" class="w-5 h-5 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg id="menu-icon-close" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile Dropdown Drawer (<= 600px) -->
+      <div
+        id="public-mobile-drawer"
+        class="hidden sm:hidden border-t border-slate-800 bg-[#071329]/95 px-4 py-4 space-y-3 backdrop-blur-xl animate-fade-in"
+      >
+        <a
+          href="/admin/login"
+          class="flex items-center justify-center gap-2 w-full min-h-[44px] px-4 py-3 rounded-xl bg-slate-900/90 text-slate-200 hover:text-amber-400 text-sm font-semibold border border-slate-800 active:scale-[0.98] transition-all"
+        >
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span>Executive Admin Portal</span>
+        </a>
+        <a
+          href="/apply"
+          class="flex items-center justify-center gap-2 w-full min-h-[44px] px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 text-sm font-bold shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all"
+        >
+          <span>Start Application Now</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
       </div>
     </header>
 
     <!-- Main Content Slot -->
-    <main class="flex-1">
+    <main class="flex-1 w-full max-w-full">
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-slate-800/80 bg-[#071329] py-10 mt-12">
+    <footer class="border-t border-slate-800/80 bg-[#071329] py-8 sm:py-10 mt-12 w-full">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {!hideSupportCard && (
           <div class="mb-8 max-w-3xl mx-auto">
             <SupportCard />
           </div>
         )}
-        <div class="text-center text-xs text-slate-500">
+        <div class="text-center text-xs text-slate-500 leading-relaxed">
           © {new Date().getFullYear()} Best Diversified Company Award 2025/26 •
           Secure online application portal
         </div>
       </div>
     </footer>
+
+    <script is:inline>
+      const menuBtn = document.getElementById('public-mobile-menu-btn');
+      const drawer = document.getElementById('public-mobile-drawer');
+      const iconOpen = document.getElementById('menu-icon-open');
+      const iconClose = document.getElementById('menu-icon-close');
+
+      if (menuBtn && drawer) {
+        menuBtn.addEventListener('click', () => {
+          const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
+          menuBtn.setAttribute('aria-expanded', String(!isExpanded));
+          drawer.classList.toggle('hidden');
+          iconOpen.classList.toggle('hidden');
+          iconClose.classList.toggle('hidden');
+        });
+      }
+    </script>
   </body>
 </html>

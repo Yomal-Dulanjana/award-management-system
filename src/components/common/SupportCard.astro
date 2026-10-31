@@ -9,9 +9,9 @@ const { class: className = "", compact = false } = Astro.props;
 ---
 
 <div
-  class={`bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 shadow-lg backdrop-blur-sm ${className}`}
+  class={`bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 shadow-lg backdrop-blur-sm ${className}`}
 >
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-3 min-w-0">
     <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
       <svg
         class="w-4 h-4"
@@ -27,18 +27,18 @@ const { class: className = "", compact = false } = Astro.props;
         />
       </svg>
     </div>
-    <div class="text-xs sm:text-sm text-slate-300">
+    <div class="text-xs sm:text-sm text-slate-300 leading-snug">
       Need assistance or have questions regarding your submission?
     </div>
   </div>
 
   <a
     href="mailto:bdc.award@gmail.com"
-    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 font-semibold text-xs sm:text-sm border border-slate-700/80 hover:border-amber-500/40 transition-colors shrink-0"
+    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 font-semibold text-xs sm:text-sm border border-slate-700/80 hover:border-amber-500/40 transition-colors w-full sm:w-auto shrink-0 min-h-[44px] sm:min-h-0"
   >
-    <span>info@awards.dsi.lk</span>
+    <span class="break-all font-mono">bdc.award@gmail.com</span>
     <svg
-      class="w-3.5 h-3.5 text-slate-400"
+      class="w-3.5 h-3.5 text-slate-400 shrink-0"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
