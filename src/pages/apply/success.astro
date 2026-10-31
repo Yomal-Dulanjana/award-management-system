@@ -15,8 +15,18 @@ const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : "";
     <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl backdrop-blur-xl text-center space-y-8">
       <!-- Success Icon -->
       <div class="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/10 animate-bounce-slow">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+        <svg
+          class="w-10 h-10"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M5 13l4 4L19 7"
+          />
         </svg>
       </div>
 
@@ -29,7 +39,8 @@ const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : "";
           Application submitted successfully
         </h1>
         <p class="text-slate-400 text-sm max-w-lg mx-auto">
-          Thank you. Your Best Diversified Company Award 2025/26 application has been received.
+          Thank you. Your Best Diversified Company Award 2025/26 application has
+          been received.
         </p>
       </div>
 
@@ -38,7 +49,10 @@ const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : "";
         <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
           Official Reference Number
         </span>
-        <div id="display-ref" class="text-2xl sm:text-3xl font-mono font-extrabold text-amber-400 tracking-wider">
+        <div
+          id="display-ref"
+          class="text-2xl sm:text-3xl font-mono font-extrabold text-amber-400 tracking-wider"
+        >
           {refParam || "BDC-2026-SUBMISSION"}
         </div>
         <p class="text-[11px] text-slate-500">
@@ -52,7 +66,10 @@ const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : "";
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
           <span>Application verified & stored securely</span>
         </div>
-        <div id="email-chip" class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-800/40 border border-slate-800 text-xs text-slate-300">
+        <div
+          id="email-chip"
+          class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-800/40 border border-slate-800 text-xs text-slate-300"
+        >
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
           <span id="email-status-text">Confirmation email dispatched</span>
         </div>
@@ -65,7 +82,12 @@ const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : "";
           href={serverDownloadUrl || "#"}
           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -84,11 +106,6 @@ const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : "";
         </a>
       </div>
     </div>
-
-    <!-- Support Help Card -->
-    <div class="mt-8 max-w-3xl mx-auto">
-      <SupportCard />
-    </div>
   </div>
 </Layout>
 
@@ -105,7 +122,9 @@ const serverDownloadUrl = refParam ? buildDownloadUrl(refParam, baseUrl) : "";
     }
 
     if (downloadUrl) {
-      const downloadBtn = document.getElementById("download-pdf-btn") as HTMLAnchorElement | null;
+      const downloadBtn = document.getElementById(
+        "download-pdf-btn",
+      ) as HTMLAnchorElement | null;
       if (downloadBtn) downloadBtn.href = downloadUrl;
     }
 

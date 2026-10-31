@@ -208,6 +208,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   const doc = new PDFDocument({
     size: 'A4',
     autoFirstPage: false,
+    bufferPages: true,
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
   });
 
@@ -222,6 +223,8 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   const LM = 42;
   const contentW = 511.28;
   const RM = LM + contentW; // 553.28
+  const topMargin = 45;
+  const maxY = 780;
 
   // Helper: Draw Section Bar with left amber stripe
   function drawSectionBar(y: number, title: string): number {
@@ -238,14 +241,76 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
     doc.lineWidth(0.75).strokeColor(COLOR_BORDER).rect(x, y, w, h).stroke();
   }
 
-  // Helper: Draw Page Footer
-  function drawFooter(pageNum: number) {
-    const footY = 800;
-    doc.font('Helvetica').fontSize(7.5).fillColor(COLOR_MUTED);
-    doc.text('Best Diversified Company Award 2025/26', LM, footY);
-    const rightText = `Page ${pageNum} / 2`;
-    const rightW = doc.widthOfString(rightText);
-    doc.text(rightText, RM - rightW, footY);
+  // Helper: Add new page
+  function addNewPage(): void {
+    doc.addPage({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
+    curY = topMargin;
+  }
+
+  // Helper: Ensure vertical space or paginate
+  function ensureSpace(neededHeight: number): void {
+    if (curY + neededHeight > maxY) {
+      addNewPage();
+    }
+  }
+
+  // Helper: Split text cleanly at word/whitespace boundaries to fit within maxHeight
+  function splitTextToFit(text: string, width: number, maxHeight: number, lineGap = 1.5): { fits: string; remaining: string } {
+    if (!text || typeof text !== 'string') return { fits: '', remaining: '' };
+    const trimmed = text.trim();
+    if (!trimmed) return { fits: '', remaining: '' };
+    if (doc.heightOfString(trimmed, { width, lineGap }) <= maxHeight) {
+      return { fits: trimmed, remaining: '' };
+    }
+    const words = trimmed.split(/(\s+)/);
+    let low = 0;
+    let high = words.length;
+    let bestIdx = 0;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const candidate = words.slice(0, mid).join('');
+      const h = doc.heightOfString(candidate, { width, lineGap });
+      if (h <= maxHeight) {
+        bestIdx = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+    const fitted = words.slice(0, bestIdx).join('').trimEnd();
+    const rest = words.slice(bestIdx).join('').trimStart();
+    return { fits: fitted, remaining: rest };
+  }
+
+  // Helper: Render complete block of text across pages with zero truncation
+  function renderTextBlock(text: string, width: number, lineGap = 2.0, marginAfter = 14): void {
+    const trimmed = (text || '').trim();
+    if (!trimmed) return;
+    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+
+    let remainingText = trimmed;
+    while (remainingText.length > 0) {
+      if (maxY - curY < 25) {
+        addNewPage();
+      }
+      const availH = maxY - curY;
+      const fullH = doc.heightOfString(remainingText, { width, lineGap });
+      if (fullH <= availH) {
+        doc.text(remainingText, LM, curY, { width, lineGap });
+        curY += fullH + marginAfter;
+        break;
+      }
+      const { fits, remaining } = splitTextToFit(remainingText, width, availH, lineGap);
+      if (!fits) {
+        addNewPage();
+        continue;
+      }
+      const chunkH = doc.heightOfString(fits, { width, lineGap });
+      doc.text(fits, LM, curY, { width, lineGap });
+      curY += chunkH;
+      remainingText = remaining;
+      addNewPage();
+    }
   }
 
   // =========================================================================
@@ -348,6 +413,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   curY += 16;
 
   // Criteria 2 - Diversification of Products / Services
+  ensureSpace(40);
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
   doc.text('Criteria 2 - Diversification of Products / Services', LM, curY);
   curY += 14;
@@ -358,65 +424,167 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   const pCol3W = contentW - pCol1W - pCol2W;
   const thH = 18;
 
-  // Table Header
-  doc.rect(LM, curY, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
-  doc.text('No.', LM + 6, curY + 5);
-  doc.text('Product / Service', LM + pCol1W + 6, curY + 5);
-  doc.text('Brief Description', LM + pCol1W + pCol2W + 6, curY + 5);
-  curY += thH;
+  function drawProductsTableHeader(): void {
+    doc.rect(LM, curY, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
+    doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
+    doc.text('No.', LM + 6, curY + 5);
+    doc.text('Product / Service', LM + pCol1W + 6, curY + 5);
+    doc.text('Brief Description', LM + pCol1W + pCol2W + 6, curY + 5);
+    curY += thH;
+  }
+
+  drawProductsTableHeader();
 
   // Products Data Rows
   const prods = (bundle.products && bundle.products.length > 0)
     ? bundle.products
     : [{ name: 'N/A', description: 'N/A' }];
 
-  prods.forEach((p, idx) => {
-    const rowH = 18;
-    drawTableOutline(LM, curY, contentW, rowH);
-    doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
-      .moveTo(LM + pCol1W, curY).lineTo(LM + pCol1W, curY + rowH)
-      .moveTo(LM + pCol1W + pCol2W, curY).lineTo(LM + pCol1W + pCol2W, curY + rowH)
-      .stroke();
+  const col2TextW = pCol2W - 12;
+  const col3TextW = pCol3W - 12;
 
-    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-    doc.text(String(idx + 1), LM + 6, curY + 5);
-    doc.text(p.name, LM + pCol1W + 6, curY + 5, { width: pCol2W - 12, height: rowH - 4, ellipsis: true });
-    doc.text(p.description, LM + pCol1W + pCol2W + 6, curY + 5, { width: pCol3W - 12, height: rowH - 4, ellipsis: true });
-    curY += rowH;
+  prods.forEach((p, idx) => {
+    const nameStr = (p.name || '').trim() || 'N/A';
+    const descStr = (p.description || '').trim() || 'N/A';
+
+    doc.font('Helvetica').fontSize(7.8);
+    const nameFullH = doc.heightOfString(nameStr, { width: col2TextW, lineGap: 1.5 });
+    const descFullH = doc.heightOfString(descStr, { width: col3TextW, lineGap: 1.5 });
+    const fullRowH = Math.max(nameFullH, descFullH, 10) + 10;
+
+    // Fast-path: Entire row fits on current page
+    if (curY + fullRowH <= maxY) {
+      drawTableOutline(LM, curY, contentW, fullRowH);
+      doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+        .moveTo(LM + pCol1W, curY).lineTo(LM + pCol1W, curY + fullRowH)
+        .moveTo(LM + pCol1W + pCol2W, curY).lineTo(LM + pCol1W + pCol2W, curY + fullRowH)
+        .stroke();
+
+      doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+      doc.text(String(idx + 1), LM + 6, curY + 5);
+      doc.text(nameStr, LM + pCol1W + 6, curY + 5, { width: col2TextW, lineGap: 1.5 });
+      doc.text(descStr, LM + pCol1W + pCol2W + 6, curY + 5, { width: col3TextW, lineGap: 1.5 });
+      curY += fullRowH;
+      return;
+    }
+
+    // Check if moving to fresh page fits it completely
+    const freshAvailH = maxY - topMargin - thH;
+    if (curY > topMargin + 40 && fullRowH <= freshAvailH) {
+      addNewPage();
+      drawProductsTableHeader();
+      drawTableOutline(LM, curY, contentW, fullRowH);
+      doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+        .moveTo(LM + pCol1W, curY).lineTo(LM + pCol1W, curY + fullRowH)
+        .moveTo(LM + pCol1W + pCol2W, curY).lineTo(LM + pCol1W + pCol2W, curY + fullRowH)
+        .stroke();
+
+      doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+      doc.text(String(idx + 1), LM + 6, curY + 5);
+      doc.text(nameStr, LM + pCol1W + 6, curY + 5, { width: col2TextW, lineGap: 1.5 });
+      doc.text(descStr, LM + pCol1W + pCol2W + 6, curY + 5, { width: col3TextW, lineGap: 1.5 });
+      curY += fullRowH;
+      return;
+    }
+
+    // Extensive description (e.g. 500 - 1000+ words) requiring clean pagination across multiple pages
+    let remDesc = descStr;
+    let isFirst = true;
+
+    while (remDesc.length > 0) {
+      if (maxY - curY < 45) {
+        addNewPage();
+        drawProductsTableHeader();
+      }
+
+      const availH = maxY - curY;
+      const availTextH = availH - 10;
+      doc.font('Helvetica').fontSize(7.8);
+      const remH = doc.heightOfString(remDesc, { width: col3TextW, lineGap: 1.5 });
+      const neededH = (isFirst ? Math.max(nameFullH, remH) : remH) + 10;
+
+      if (neededH <= availH) {
+        const chunkRowH = Math.max(neededH, 18);
+        drawTableOutline(LM, curY, contentW, chunkRowH);
+        doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+          .moveTo(LM + pCol1W, curY).lineTo(LM + pCol1W, curY + chunkRowH)
+          .moveTo(LM + pCol1W + pCol2W, curY).lineTo(LM + pCol1W + pCol2W, curY + chunkRowH)
+          .stroke();
+
+        doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+        if (isFirst) {
+          doc.text(String(idx + 1), LM + 6, curY + 5);
+          doc.text(nameStr, LM + pCol1W + 6, curY + 5, { width: col2TextW, lineGap: 1.5 });
+        } else {
+          doc.text(`${idx + 1} (cont.)`, LM + 6, curY + 5);
+          doc.text(`${nameStr} (cont.)`, LM + pCol1W + 6, curY + 5, { width: col2TextW, lineGap: 1.5 });
+        }
+        doc.text(remDesc, LM + pCol1W + pCol2W + 6, curY + 5, { width: col3TextW, lineGap: 1.5 });
+        curY += chunkRowH;
+        remDesc = '';
+        break;
+      }
+
+      const { fits, remaining } = splitTextToFit(remDesc, col3TextW, availTextH, 1.5);
+      if (!fits) {
+        addNewPage();
+        drawProductsTableHeader();
+        continue;
+      }
+
+      const fitsH = doc.heightOfString(fits, { width: col3TextW, lineGap: 1.5 });
+      const chunkTextH = isFirst ? Math.max(nameFullH, fitsH) : fitsH;
+      const chunkRowH = Math.max(chunkTextH, 10) + 10;
+
+      drawTableOutline(LM, curY, contentW, chunkRowH);
+      doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
+        .moveTo(LM + pCol1W, curY).lineTo(LM + pCol1W, curY + chunkRowH)
+        .moveTo(LM + pCol1W + pCol2W, curY).lineTo(LM + pCol1W + pCol2W, curY + chunkRowH)
+        .stroke();
+
+      doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
+      if (isFirst) {
+        doc.text(String(idx + 1), LM + 6, curY + 5);
+        doc.text(nameStr, LM + pCol1W + 6, curY + 5, { width: col2TextW, lineGap: 1.5 });
+      } else {
+        doc.text(`${idx + 1} (cont.)`, LM + 6, curY + 5);
+        doc.text(`${nameStr} (cont.)`, LM + pCol1W + 6, curY + 5, { width: col2TextW, lineGap: 1.5 });
+      }
+      doc.text(fits, LM + pCol1W + pCol2W + 6, curY + 5, { width: col3TextW, lineGap: 1.5 });
+
+      curY += chunkRowH;
+      remDesc = remaining;
+      isFirst = false;
+    }
   });
 
   curY += 14;
 
-  // Supporting Details Subheading
+  // Details of New Market Entered (Structured text block layout replacing 2-column key/value table)
+  ensureSpace(50);
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
   doc.text('Details of New Market Entered', LM, curY);
-  curY += 12;
+  curY += 14;
 
-  // Supporting Details Table (2 rows)
   const divDetail = bundle.diversificationDetails || bundle.products?.[0]?.description || bundle.natureOperations || 'N/A';
   const mktDetail = bundle.marketsCustomers || bundle.newMarketDetails || 'N/A';
-  const suppRows = [
-    ['Diversification Details', divDetail],
-    ['Markets & Customers', mktDetail]
-  ];
 
-  suppRows.forEach(sr => {
-    const rowH = 18;
-    drawTableOutline(LM, curY, contentW, rowH);
-    doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, curY).lineTo(LM + col1W, curY + rowH).stroke();
+  // Subheading: Diversification Details
+  ensureSpace(40);
+  doc.font('Helvetica-Bold').fontSize(8.5).fillColor(COLOR_TEXT_NAVY);
+  doc.text('Diversification Details:', LM, curY);
+  curY += 11;
+  renderTextBlock(divDetail, contentW, 2.0, 14);
 
-    doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-    doc.text(sr[0]!, LM + 6, curY + 5);
-
-    doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-    doc.text(sr[1]!, LM + col1W + 6, curY + 5, { width: col2W - 12, height: rowH - 4, ellipsis: true });
-    curY += rowH;
-  });
-
-  curY += 16;
+  // Subheading: Markets & Customers
+  // ensureSpace(40);
+  // doc.font('Helvetica-Bold').fontSize(8.5).fillColor(COLOR_TEXT_NAVY);
+  // doc.text('Markets & Customers:', LM, curY);
+  // curY += 11;
+  // renderTextBlock(mktDetail, contentW, 2.0, 16);
 
   // Criteria 3 - Revenue from Diversification
+  ensureSpace(80);
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
   doc.text('Criteria 3 - Revenue from Diversification', LM, curY);
   curY += 14;
@@ -438,6 +606,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   const rCol2W = 210;
   const rCol3W = 145;
 
+  ensureSpace(40);
   doc.rect(LM, curY, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
   doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
   doc.text('No.', LM + 6, curY + 5);
@@ -452,6 +621,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
     : [{ activity: 'N/A', revenue: 0, percent: 0 }];
 
   revRows.forEach((r, idx) => {
+    ensureSpace(20);
     const rowH = 18;
     drawTableOutline(LM, curY, contentW, rowH);
     doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
@@ -469,6 +639,7 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   });
 
   // Summary Row (TOTAL)
+  ensureSpace(20);
   const sumH = 18;
   drawTableOutline(LM, curY, contentW, sumH);
   doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
@@ -481,36 +652,39 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   doc.text('TOTAL', LM + rCol1W + 6, curY + 5);
   doc.text(fmtNumber(bundle.diversificationTotal), LM + rCol1W + rCol2W + 6, curY + 5);
   doc.text(`${Number(bundle.combinedPercent).toFixed(2)}%`, LM + rCol1W + rCol2W + rCol3W + 6, curY + 5);
+  curY += sumH + 18;
 
-  drawFooter(1);
+  // Auto-Pagebreak Handling: If Criteria 3 ends near the bottom of the page, start Criteria 4 on a new page
+  if (maxY - curY < 70) {
+    addNewPage();
+  }
 
   // =========================================================================
-  // PAGE 2: Financial Metrics, Declaration & Evidence Files
+  // Financial Metrics, Declaration & Evidence Files
   // =========================================================================
-  doc.addPage({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
-
-  let p2Y = 45;
 
   // Criteria 4 - Gross Profit Margin Improvement
+  ensureSpace(60);
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
-  doc.text('Criteria 4 - Gross Profit Margin Improvement', LM, p2Y);
-  p2Y += 14;
+  doc.text('Criteria 4 - Gross Profit Margin Improvement', LM, curY);
+  curY += 16;
 
   // Criteria 4 Table (1 row)
   const c4H = 18;
-  drawTableOutline(LM, p2Y, contentW, c4H);
-  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, p2Y).lineTo(LM + col1W, p2Y + c4H).stroke();
+  drawTableOutline(LM, curY, contentW, c4H);
+  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, curY).lineTo(LM + col1W, curY + c4H).stroke();
 
   doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-  doc.text('Selected Option', LM + 6, p2Y + 5);
+  doc.text('Selected Option', LM + 6, curY + 5);
   doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-  doc.text(bundle.grossProfitMarginOption || 'N/A', LM + col1W + 6, p2Y + 5, { width: col2W - 12, height: c4H - 4, ellipsis: true });
-  p2Y += c4H + 16;
+  doc.text(bundle.grossProfitMarginOption || 'N/A', LM + col1W + 6, curY + 5, { width: col2W - 12, height: c4H - 4, ellipsis: true });
+  curY += c4H + 16;
 
   // Criteria 5 - Return on Investment (ROI)
+  ensureSpace(120);
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
-  doc.text('Criteria 5 - Return on Investment (ROI)', LM, p2Y);
-  p2Y += 14;
+  doc.text('Criteria 5 - Return on Investment (ROI)', LM, curY);
+  curY += 14;
 
   // Criteria 5 Table (4 rows)
   const paybackText = (bundle.payback !== null && bundle.payback !== undefined)
@@ -525,58 +699,59 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
   ];
 
   c5Rows.forEach(r => {
-    drawTableOutline(LM, p2Y, contentW, r.h);
-    doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, p2Y).lineTo(LM + col1W, p2Y + r.h).stroke();
+    drawTableOutline(LM, curY, contentW, r.h);
+    doc.lineWidth(0.75).strokeColor(COLOR_BORDER).moveTo(LM + col1W, curY).lineTo(LM + col1W, curY + r.h).stroke();
 
     doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-    doc.text(r.label, LM + 6, p2Y + (r.h > 20 ? 3.5 : 5), { lineGap: 1.5 });
+    doc.text(r.label, LM + 6, curY + (r.h > 20 ? 3.5 : 5), { lineGap: 1.5 });
 
     doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-    doc.text(r.val, LM + col1W + 6, p2Y + (r.h > 20 ? 8 : 5));
-    p2Y += r.h;
+    doc.text(r.val, LM + col1W + 6, curY + (r.h > 20 ? 8 : 5));
+    curY += r.h;
   });
 
-  p2Y += 20;
+  curY += 20;
 
   // Section 3 - Declaration
-  p2Y = drawSectionBar(p2Y, 'Section 3 - Declaration');
-  p2Y += 12;
+  ensureSpace(180);
+  curY = drawSectionBar(curY, 'Section 3 - Declaration');
+  curY += 12;
 
   // Confirmation paragraph
   doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
   doc.text(
     'I/We confirm that the information provided above is accurate and relates exclusively to New Products to\nNew Markets diversification and strategically linked long-term investments.',
-    LM, p2Y, { lineGap: 2.5 }
+    LM, curY, { lineGap: 2.5 }
   );
-  p2Y += 28;
+  curY += 28;
 
   // Electronic Declaration & Signature Box
   const sigBoxH = 100;
-  doc.lineWidth(0.75).strokeColor(COLOR_BORDER).rect(LM, p2Y, contentW, sigBoxH).stroke();
+  drawTableOutline(LM, curY, contentW, sigBoxH);
 
   doc.font('Helvetica-Bold').fontSize(8.5).fillColor(COLOR_TEXT_NAVY);
-  doc.text('Electronic Declaration & Signature', LM + 10, p2Y + 10);
+  doc.text('Electronic Declaration & Signature', LM + 10, curY + 10);
 
   // Field: Name
-  const fieldY1 = p2Y + 28;
+  const fieldY1 = curY + 28;
   doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
   doc.text('Name: ', LM + 10, fieldY1, { continued: true });
   doc.font('Helvetica').text(bundle.declarationName || 'N/A');
 
   // Field: Designation
-  const fieldY2 = p2Y + 44;
+  const fieldY2 = curY + 44;
   doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
   doc.text('Designation: ', LM + 10, fieldY2, { continued: true });
   doc.font('Helvetica').text(bundle.declarationDesignation || 'N/A');
 
   // Field: Date
-  const fieldY3 = p2Y + 60;
+  const fieldY3 = curY + 60;
   doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
   doc.text('Date: ', LM + 10, fieldY3, { continued: true });
   doc.font('Helvetica').text(bundle.declarationDate || 'N/A');
 
   // Field: Signature
-  const fieldY4 = p2Y + 78;
+  const fieldY4 = curY + 78;
   doc.font('Helvetica-Bold').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
   doc.text('Signature:', LM + 10, fieldY4);
 
@@ -609,43 +784,57 @@ export async function generateApplicationPdf(bundle: PdfBundle, targetPath?: str
     doc.text('[Digitally Authenticated upon Submission]', LM + 95, fieldY4);
   }
 
-  p2Y += sigBoxH + 20;
+  curY += sigBoxH + 20;
 
   // Evidence Files Table
+  ensureSpace(50);
   doc.font('Helvetica-Bold').fontSize(9.5).fillColor(COLOR_TEXT_NAVY);
-  doc.text('Evidence Files', LM, p2Y);
-  p2Y += 14;
+  doc.text('Evidence Files', LM, curY);
+  curY += 14;
 
   const eCol1W = 35;
   const eCol2W = 340;
 
-  doc.rect(LM, p2Y, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
+  doc.rect(LM, curY, contentW, thH).fill(COLOR_NAVY_TABLE_TH);
   doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_WHITE);
-  doc.text('No.', LM + 6, p2Y + 5);
-  doc.text('File Name', LM + eCol1W + 6, p2Y + 5);
-  doc.text('Size', LM + eCol1W + eCol2W + 6, p2Y + 5);
-  p2Y += thH;
+  doc.text('No.', LM + 6, curY + 5);
+  doc.text('File Name', LM + eCol1W + 6, curY + 5);
+  doc.text('Size', LM + eCol1W + eCol2W + 6, curY + 5);
+  curY += thH;
 
   const evFiles = (bundle.evidenceFiles && bundle.evidenceFiles.length > 0)
     ? bundle.evidenceFiles
     : [{ name: 'No evidence files attached', size: 0 }];
 
   evFiles.forEach((f, idx) => {
+    ensureSpace(20);
     const rowH = 18;
-    drawTableOutline(LM, p2Y, contentW, rowH);
+    drawTableOutline(LM, curY, contentW, rowH);
     doc.lineWidth(0.75).strokeColor(COLOR_BORDER)
-      .moveTo(LM + eCol1W, p2Y).lineTo(LM + eCol1W, p2Y + rowH)
-      .moveTo(LM + eCol1W + eCol2W, p2Y).lineTo(LM + eCol1W + eCol2W, p2Y + rowH)
+      .moveTo(LM + eCol1W, curY).lineTo(LM + eCol1W, curY + rowH)
+      .moveTo(LM + eCol1W + eCol2W, curY).lineTo(LM + eCol1W + eCol2W, curY + rowH)
       .stroke();
 
     doc.font('Helvetica').fontSize(7.8).fillColor(COLOR_TEXT_BODY);
-    doc.text(String(idx + 1), LM + 6, p2Y + 5);
-    doc.text(f.name, LM + eCol1W + 6, p2Y + 5, { width: eCol2W - 12, height: rowH - 4, ellipsis: true });
-    doc.text(fmtFileSize(f.size), LM + eCol1W + eCol2W + 6, p2Y + 5);
-    p2Y += rowH;
+    doc.text(String(idx + 1), LM + 6, curY + 5);
+    doc.text(f.name, LM + eCol1W + 6, curY + 5, { width: eCol2W - 12, height: rowH - 4, ellipsis: true });
+    doc.text(fmtFileSize(f.size), LM + eCol1W + eCol2W + 6, curY + 5);
+    curY += rowH;
   });
 
-  drawFooter(2);
+  // Draw footers on all generated pages
+  const range = doc.bufferedPageRange();
+  const totalPages = range.count;
+  for (let i = range.start; i < range.start + totalPages; i++) {
+    doc.switchToPage(i);
+    const footY = 800;
+    doc.font('Helvetica').fontSize(7.5).fillColor(COLOR_MUTED);
+    doc.text('Best Diversified Company Award 2025/26', LM, footY);
+    const pageNum = i + 1 - range.start;
+    const rightText = `Page ${pageNum} / ${totalPages}`;
+    const rightW = doc.widthOfString(rightText);
+    doc.text(rightText, RM - rightW, footY);
+  }
 
   // Finalize PDFKit document
   doc.end();
